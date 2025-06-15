@@ -1,0 +1,12 @@
+{
+    "room1": {
+        "label": "第1診察室",
+        "number": 0,
+        "visible": true
+    },
+    "room2": {
+        "label": "第2診察室",
+        "number": 5,
+        "visible": true
+    }
+}

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>待合室システム 操作画面</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="control-screen">
+
+  <h1>スタッフ操作画面</h1>
+
+  <!-- 診察順番カード -->
+  <section class="card card-status">
+    <h2>🩺 診察順番のご案内</h2>
+    <div class="field">
+      <label>第1診察室<label class="inline"><input id="room1Visible" type="checkbox">表示</label>
+        <input id="room1Label" type="text" placeholder="ラベル">
+      </label>
+      <input id="room1Number" type="number" min="0" placeholder="番号">
+    </div>
+    <div class="field">
+      <label>第2診察室<label class="inline"><input id="room2Visible" type="checkbox">表示</label>
+        <input id="room2Label" type="text" placeholder="ラベル">
+      </label>
+      <input id="room2Number" type="number" min="0" placeholder="番号">
+    </div>
+    <button id="saveStatus" class="btn btn-green">送信</button>
+  </section>
+
+  <!-- 設定カード -->
+  <section class="card card-settings">
+    <h2>⚙️ 設定</h2>
+    <!-- メッセージ -->
+    <div class="field">
+      <textarea id="messageText" rows="2" placeholder="差し込みメッセージ"></textarea>
+      <button id="sendMessage" class="btn btn-blue">メッセージ変更</button>
+    </div>
+    <!-- メッセージ表示ON/OFF -->
+    <div class="field inline">
+      <label><input type="radio" name="showMsg" value="on" id="msgOn"> 表示</label>
+      <label><input type="radio" name="showMsg" value="off" id="msgOff"> 非表示</label>
+    </div>
+    <!-- TIPS同期/常時 -->
+    <div class="field inline">
+      <label><input type="radio" name="msgMode" value="always" id="modeAlways"> 常時表示</label>
+      <label><input type="radio" name="msgMode" value="sync" id="modeSync"> TIPS同期</label>
+    </div>
+    <!-- TIPS表示ON/OFF -->
+    <div class="field inline">
+      <label><input type="radio" name="showTips" value="on" id="tipsOn"> TIPS表示</label>
+      <label><input type="radio" name="showTips" value="off" id="tipsOff"> 非表示</label>
+    </div>
+    <!-- 間隔・継続時間 -->
+    <div class="field">
+      <label>切替間隔（秒）<input id="interval" type="number" min="5" max="600"></label>
+      <label>継続時間（秒）<input id="duration" type="number" min="1" max="300"></label>
+    </div>
+    <button id="saveSettings" class="btn btn-blue">設定変更</button>
+  </section>
+
+
+  <script src="js/common.js"></script>
+  <script src="js/control.js"></script>
+</body>
+</html>
