@@ -121,3 +121,91 @@ html, body {
   margin: 4px 0;
   color: #fff;
 }
+
+/* ─────────────────────────────────────────────────
+   操作画面 (control.html) 共通／カードスタイル
+───────────────────────────────────────────────── */
+
+/* 操作画面全体背景 */
+body.control-screen {
+  background: #f9f9f9;
+  color: #333;
+  overflow: auto;
+  padding-bottom: 40px;
+}
+body.control-screen h1 {
+  margin: 20px;
+  font-size: 2rem;
+  color: #2c3e50;
+}
+
+/* カード共通 */
+.card {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  padding: 16px;
+  margin: 20px auto;
+  max-width: 600px;
+}
+.card h2 {
+  margin-bottom: 12px;
+  font-size: 1.3rem;
+  color: #2c3e50;
+}
+
+/* 診察順カード */
+.card-status {
+  background: #e8f5e9; /* 薄い緑 */
+}
+.btn-green {
+  background: #4caf50;
+}
+.btn-green:hover {
+  background: #43a047;
+}
+
+/* 設定カード */
+.card-settings {
+  background: #e3f2fd; /* 薄い青 */
+}
+.btn-blue {
+  background: #2196f3;
+}
+.btn-blue:hover {
+  background: #1e88e5;
+}
+
+/* フィールド */
+.field {
+  margin-bottom: 12px;
+}
+.field.inline {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+.field label {
+  flex: 1;
+  font-size: 1rem;
+}
+.field input,
+.field textarea {
+  flex: 2;
+  padding: 6px 8px;
+  margin-left: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* ボタン共通 */
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.3s;
+  margin-left: 8px;
+}
