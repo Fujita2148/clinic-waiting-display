@@ -11,7 +11,7 @@ if (!isset($data['interval'],$data['duration'],$data['msgMode'],$data['showTips'
     exit;
 }
 
-// ÊİÂ¸¡§settings.json
+// ÃŠÃÃ‚Â¸Â¡Â§settings.json
 file_put_contents(__DIR__.'/data/settings.json',
   json_encode([
     'interval' => intval($data['interval']),
@@ -21,7 +21,7 @@ file_put_contents(__DIR__.'/data/settings.json',
   ], JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT)
 );
 
-// ÊİÂ¸¡§message.json
+// ÃŠÃÃ‚Â¸Â¡Â§message.json
 $msg = $data['message'];
 file_put_contents(__DIR__.'/data/message.json',
   json_encode([
