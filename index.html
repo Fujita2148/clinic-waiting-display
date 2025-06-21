@@ -2,18 +2,53 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>待合室表示システム</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <video id="bg-video" src="assets/background.mp4" autoplay muted loop></video>
-  <div id="tips-title" class="overlay title-card">
-    <h1>メンタルヘルス100のコツ</h1>
+  <!-- 背景動画（オプション） -->
+  <video id="bg-video" autoplay muted loop playsinline style="display: none;">
+    <source src="assets/background.mp4" type="video/mp4">
+  </video>
+  
+  <!-- 背景グラデーション -->
+  <div class="bg-gradient"></div>
+  
+  <!-- メイン表示コンテナ -->
+  <div class="display-container">
+    <!-- カテゴリタイトル（左上） -->
+    <div class="category-title" id="categoryTitle">
+      💡 システム起動中
+    </div>
+    
+    <!-- メインコンテンツ（中央） -->
+    <div class="main-content" id="mainContent">
+      <h2>システムを起動しています...</h2>
+      <p>しばらくお待ちください</p>
+    </div>
+    
+    <!-- メッセージエリア（下部） -->
+    <div class="message-area" id="messageArea">
+      <p>お知らせがある場合はこちらに表示されます</p>
+    </div>
+    
+    <!-- 診察順カード（右下） -->
+    <div class="status-card" id="statusCard">
+      <h4>🩺 診察順のご案内</h4>
+      <div class="room-info">
+        <div class="room-label">第1診察室</div>
+        <div class="room-number">-</div>
+      </div>
+      <div class="room-info">
+        <div class="room-label">第2診察室</div>
+        <div class="room-number">-</div>
+      </div>
+    </div>
   </div>
-  <div id="tip-container" class="overlay"></div>
-  <div id="message-container" class="overlay"></div>
-  <div id="status-container" class="overlay status-card"></div>
+  
+  <!-- JavaScript -->
   <script src="js/common.js"></script>
-  <script src="js/index.js"></script>
+  <script src="js/display.js"></script>
 </body>
 </html>

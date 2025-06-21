@@ -2,64 +2,429 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>待合室システム 操作画面</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="control-screen">
+  <h1>🎛️ 待合室表示システム コントロールパネル</h1>
+  
+  <!-- 診察順管理カード -->
+  <div class="card">
+    <div class="card-header">
+      🩺 診察順番のご案内
+      <button class="btn btn-info" onclick="refreshStatus()">🔄 最新状態を確認</button>
+    </div>
+    <div class="card-content">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+        <div class="form-group">
+          <label>第1診察室</label>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <input type="checkbox" id="room1Visible" style="width: auto;">
+            <span style="margin-right: 10px;">表示</span>
+            <input id="room1Label" type="text" placeholder="ラベル" style="flex: 1;" value="第1診察室">
+            <input id="room1Number" type="number" min="0" max="999" placeholder="番号" style="width: 100px;" value="0">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>第2診察室</label>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <input type="checkbox" id="room2Visible" style="width: auto;">
+            <span style="margin-right: 10px;">表示</span>
+            <input id="room2Label" type="text" placeholder="ラベル" style="flex: 1;" value="第2診察室">
+            <input id="room2Number" type="number" min="0" max="999" placeholder="番号" style="width: 100px;" value="0">
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-success" onclick="saveStatus()">💾 診察順を更新</button>
+      <button class="btn btn-danger" onclick="resetStatus()">🔄 リセット</button>
+    </div>
+  </div>
 
-  <h1>スタッフ操作画面</h1>
+  <!-- メッセージ管理カード -->
+  <div class="card">
+    <div class="card-header">
+      📢 メッセージ管理
+      <div class="stats" id="messageStats">
+        文字数: 0/200
+      </div>
+    </div>
+    <div class="card-content">
+      <div class="form-group">
+        <label>患者向けメッセージ</label>
+        <textarea id="messageText" rows="3" placeholder="患者様向けのお知らせメッセージを入力してください" maxlength="200"></textarea>
+        <div style="display: flex; gap: 20px; margin-top: 10px; align-items: center;">
+          <label style="display: flex; align-items: center; gap: 5px;">
+            <input type="radio" name="showMsg" value="on" id="msgOn">
+            表示する
+          </label>
+          <label style="display: flex; align-items: center; gap: 5px;">
+            <input type="radio" name="showMsg" value="off" id="msgOff">
+            表示しない
+          </label>
+        </div>
+      </div>
+      <button class="btn btn-success" onclick="saveMessage()">💾 メッセージを更新</button>
+      <button class="btn btn-danger" onclick="clearMessage()">🗑️ メッセージを消去</button>
+    </div>
+  </div>
 
-  <!-- 診察順番カード -->
-  <section class="card card-status">
-    <h2>🩺 診察順番のご案内</h2>
-    <div class="field">
-      <label>第1診察室<label class="inline"><input id="room1Visible" type="checkbox">表示</label>
-        <input id="room1Label" type="text" placeholder="ラベル">
-      </label>
-      <input id="room1Number" type="number" min="0" placeholder="番号">
+  <!-- システム設定カード -->
+  <div class="card">
+    <div class="card-header">
+      ⚙️ システム設定
     </div>
-    <div class="field">
-      <label>第2診察室<label class="inline"><input id="room2Visible" type="checkbox">表示</label>
-        <input id="room2Label" type="text" placeholder="ラベル">
-      </label>
-      <input id="room2Number" type="number" min="0" placeholder="番号">
+    <div class="card-content">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+        <div class="form-group">
+          <label>表示切替間隔（秒）</label>
+          <input id="interval" type="number" min="5" max="600" value="20">
+          <small style="color: #666;">5-600秒の範囲で設定</small>
+        </div>
+        <div class="form-group">
+          <label>メッセージ表示モード</label>
+          <div style="display: flex; gap: 15px; margin-top: 5px;">
+            <label style="display: flex; align-items: center; gap: 5px;">
+              <input type="radio" name="msgMode" value="always" id="modeAlways">
+              常時表示
+            </label>
+            <label style="display: flex; align-items: center; gap: 5px;">
+              <input type="radio" name="msgMode" value="sync" id="modeSync">
+              コンテンツ同期
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label style="display: flex; align-items: center; gap: 10px;">
+          <input type="checkbox" id="showTips" style="width: auto;">
+          コンテンツ表示を有効にする
+        </label>
+      </div>
+      <button class="btn btn-success" onclick="saveSettings()">💾 設定を保存</button>
     </div>
-    <button id="saveStatus" class="btn btn-green">送信</button>
-  </section>
+  </div>
 
-  <!-- 設定カード -->
-  <section class="card card-settings">
-    <h2>⚙️ 設定</h2>
-    <!-- メッセージ -->
-    <div class="field">
-      <textarea id="messageText" rows="2" placeholder="差し込みメッセージ"></textarea>
-      <button id="sendMessage" class="btn btn-blue">メッセージ変更</button>
+  <!-- システム状態カード -->
+  <div class="card">
+    <div class="card-header">
+      📊 システム状態
+      <button class="btn btn-info" onclick="refreshSystemInfo()">🔄 更新</button>
     </div>
-    <!-- メッセージ表示ON/OFF -->
-    <div class="field inline">
-      <label><input type="radio" name="showMsg" value="on" id="msgOn"> 表示</label>
-      <label><input type="radio" name="showMsg" value="off" id="msgOff"> 非表示</label>
+    <div class="card-content">
+      <div class="stats" id="systemStats">
+        <span>コンテンツファイル: <span id="fileCount">-</span>個</span>
+        <span>最終更新: <span id="lastUpdate">-</span></span>
+        <span>システム状態: <span id="systemStatus">確認中...</span></span>
+      </div>
+      <div id="systemDetails" style="margin-top: 15px; font-size: 0.9rem; color: #666;">
+        システム情報を読み込み中...
+      </div>
     </div>
-    <!-- TIPS同期/常時 -->
-    <div class="field inline">
-      <label><input type="radio" name="msgMode" value="always" id="modeAlways"> 常時表示</label>
-      <label><input type="radio" name="msgMode" value="sync" id="modeSync"> TIPS同期</label>
-    </div>
-    <!-- TIPS表示ON/OFF -->
-    <div class="field inline">
-      <label><input type="radio" name="showTips" value="on" id="tipsOn"> TIPS表示</label>
-      <label><input type="radio" name="showTips" value="off" id="tipsOff"> 非表示</label>
-    </div>
-    <!-- 間隔・継続時間 -->
-    <div class="field">
-      <label>切替間隔（秒）<input id="interval" type="number" min="5" max="600"></label>
-      <label>継続時間（秒）<input id="duration" type="number" min="1" max="300"></label>
-    </div>
-    <button id="saveSettings" class="btn btn-blue">設定変更</button>
-  </section>
+  </div>
 
-
+  <!-- JavaScript -->
   <script src="js/common.js"></script>
-  <script src="js/control.js"></script>
+  <script>
+    // ─────────────────────────────────────────────────
+    // コントロール画面JavaScript
+    // ─────────────────────────────────────────────────
+
+    let isInitialized = false;
+
+    // 初期化
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        await loadAllData();
+        setupEventListeners();
+        isInitialized = true;
+        updateSystemStatus('システム準備完了');
+        log('info', 'Control panel initialized');
+      } catch (error) {
+        log('error', 'Control panel initialization failed:', error);
+        showToast('システムの初期化に失敗しました', 'error');
+      }
+    });
+
+    // 全データの読み込み
+    async function loadAllData() {
+      await Promise.all([
+        loadStatus(),
+        loadMessage(),
+        loadSettings(),
+        loadSystemInfo()
+      ]);
+    }
+
+    // 診察順の読み込み
+    async function loadStatus() {
+      try {
+        const status = await fetchJSON('data/status.json');
+        
+        document.getElementById('room1Label').value = status.room1?.label || '第1診察室';
+        document.getElementById('room1Number').value = status.room1?.number || 0;
+        document.getElementById('room1Visible').checked = status.room1?.visible || false;
+        
+        document.getElementById('room2Label').value = status.room2?.label || '第2診察室';
+        document.getElementById('room2Number').value = status.room2?.number || 0;
+        document.getElementById('room2Visible').checked = status.room2?.visible || false;
+        
+      } catch (error) {
+        log('warn', 'Failed to load status:', error);
+      }
+    }
+
+    // メッセージの読み込み
+    async function loadMessage() {
+      try {
+        const message = await fetchJSON('data/message.json');
+        
+        document.getElementById('messageText').value = message.text || '';
+        document.getElementById('msgOn').checked = message.visible !== false;
+        document.getElementById('msgOff').checked = message.visible === false;
+        
+        updateMessageStats();
+        
+      } catch (error) {
+        log('warn', 'Failed to load message:', error);
+        document.getElementById('msgOff').checked = true;
+      }
+    }
+
+    // 設定の読み込み
+    async function loadSettings() {
+      try {
+        const settings = await fetchJSON('data/settings.json');
+        
+        document.getElementById('interval').value = settings.interval || 20;
+        document.getElementById('showTips').checked = settings.showTips !== false;
+        
+        if (settings.messageMode === 'always') {
+          document.getElementById('modeAlways').checked = true;
+        } else {
+          document.getElementById('modeSync').checked = true;
+        }
+        
+      } catch (error) {
+        log('warn', 'Failed to load settings:', error);
+        // デフォルト値を設定
+        document.getElementById('interval').value = 20;
+        document.getElementById('showTips').checked = true;
+        document.getElementById('modeSync').checked = true;
+      }
+    }
+
+    // システム情報の読み込み
+    async function loadSystemInfo() {
+      try {
+        const response = await fetchJSON('php/get_files.php');
+        
+        document.getElementById('fileCount').textContent = response.totalFiles || 0;
+        document.getElementById('lastUpdate').textContent = response.timestamp || '-';
+        
+        const details = response.files?.map(file => 
+          `${file.displayName} (${file.contentCount}項目)`
+        ).join(', ') || 'ファイルなし';
+        
+        document.getElementById('systemDetails').textContent = details;
+        
+      } catch (error) {
+        log('warn', 'Failed to load system info:', error);
+        document.getElementById('systemDetails').textContent = 'システム情報の取得に失敗しました';
+      }
+    }
+
+    // イベントリスナーの設定
+    function setupEventListeners() {
+      // メッセージ文字数カウント
+      const messageText = document.getElementById('messageText');
+      messageText.addEventListener('input', updateMessageStats);
+      
+      // フォームのリアルタイム検証
+      setupFormValidation();
+    }
+
+    // フォーム検証の設定
+    function setupFormValidation() {
+      const interval = document.getElementById('interval');
+      interval.addEventListener('input', () => {
+        const value = parseInt(interval.value);
+        if (value < 5 || value > 600) {
+          interval.style.borderColor = '#e74c3c';
+        } else {
+          interval.style.borderColor = '#ddd';
+        }
+      });
+      
+      const numbers = ['room1Number', 'room2Number'];
+      numbers.forEach(id => {
+        const element = document.getElementById(id);
+        element.addEventListener('input', () => {
+          const value = parseInt(element.value);
+          if (value < 0 || value > 999) {
+            element.style.borderColor = '#e74c3c';
+          } else {
+            element.style.borderColor = '#ddd';
+          }
+        });
+      });
+    }
+
+    // 診察順の保存
+    async function saveStatus() {
+      try {
+        const data = {
+          room1: {
+            label: document.getElementById('room1Label').value.trim() || '第1診察室',
+            number: parseInt(document.getElementById('room1Number').value) || 0,
+            visible: document.getElementById('room1Visible').checked
+          },
+          room2: {
+            label: document.getElementById('room2Label').value.trim() || '第2診察室',
+            number: parseInt(document.getElementById('room2Number').value) || 0,
+            visible: document.getElementById('room2Visible').checked
+          }
+        };
+        
+        await postJSON('php/save_status.php', data);
+        showToast('診察順を更新しました');
+        
+      } catch (error) {
+        log('error', 'Failed to save status:', error);
+        showToast('診察順の保存に失敗しました', 'error');
+      }
+    }
+
+    // 診察順のリセット
+    async function resetStatus() {
+      if (!confirm('診察順をリセットしますか？')) return;
+      
+      document.getElementById('room1Number').value = 0;
+      document.getElementById('room2Number').value = 0;
+      document.getElementById('room1Visible').checked = false;
+      document.getElementById('room2Visible').checked = false;
+      
+      await saveStatus();
+    }
+
+    // メッセージの保存
+    async function saveMessage() {
+      try {
+        const data = {
+          text: document.getElementById('messageText').value.trim(),
+          visible: document.getElementById('msgOn').checked
+        };
+        
+        await postJSON('php/save_message.php', data);
+        showToast('メッセージを更新しました');
+        
+      } catch (error) {
+        log('error', 'Failed to save message:', error);
+        showToast('メッセージの保存に失敗しました', 'error');
+      }
+    }
+
+    // メッセージの消去
+    async function clearMessage() {
+      if (!confirm('メッセージを消去しますか？')) return;
+      
+      document.getElementById('messageText').value = '';
+      document.getElementById('msgOff').checked = true;
+      updateMessageStats();
+      
+      await saveMessage();
+    }
+
+    // 設定の保存
+    async function saveSettings() {
+      try {
+        const data = {
+          interval: parseInt(document.getElementById('interval').value) || 20,
+          messageMode: document.getElementById('modeAlways').checked ? 'always' : 'sync',
+          showTips: document.getElementById('showTips').checked
+        };
+        
+        await postJSON('php/save_settings.php', data);
+        showToast('設定を保存しました');
+        
+      } catch (error) {
+        log('error', 'Failed to save settings:', error);
+        showToast('設定の保存に失敗しました', 'error');
+      }
+    }
+
+    // メッセージ統計の更新
+    function updateMessageStats() {
+      const text = document.getElementById('messageText').value;
+      const length = text.length;
+      const statsElement = document.getElementById('messageStats');
+      
+      statsElement.textContent = `文字数: ${length}/200`;
+      
+      if (length > 200) {
+        statsElement.style.color = '#e74c3c';
+      } else if (length > 150) {
+        statsElement.style.color = '#f39c12';
+      } else {
+        statsElement.style.color = '#27ae60';
+      }
+    }
+
+    // システム状態の更新
+    function updateSystemStatus(status) {
+      document.getElementById('systemStatus').textContent = status;
+    }
+
+    // データの再読み込み
+    async function refreshStatus() {
+      try {
+        updateSystemStatus('診察順を更新中...');
+        await loadStatus();
+        updateSystemStatus('診察順を更新しました');
+        showToast('診察順を再読み込みしました');
+      } catch (error) {
+        updateSystemStatus('更新に失敗しました');
+        showToast('診察順の再読み込みに失敗しました', 'error');
+      }
+    }
+
+    async function refreshSystemInfo() {
+      try {
+        updateSystemStatus('システム情報を更新中...');
+        await loadSystemInfo();
+        updateSystemStatus('システム情報を更新しました');
+        showToast('システム情報を更新しました');
+      } catch (error) {
+        updateSystemStatus('情報取得に失敗しました');
+        showToast('システム情報の取得に失敗しました', 'error');
+      }
+    }
+
+    // トースト通知
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      
+      setTimeout(() => toast.classList.add('show'), 100);
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    // 定期的なデータ更新（オプション）
+    setInterval(async () => {
+      if (isInitialized) {
+        try {
+          await loadSystemInfo();
+        } catch (error) {
+          // エラーは無視（ログのみ）
+          log('warn', 'Background system info update failed:', error);
+        }
+      }
+    }, 30000); // 30秒間隔
+  </script>
 </body>
 </html>

@@ -1,6 +1,15 @@
 {
-    "interval": 10,
-    "duration": 8,
-    "msgMode": "always",
-    "showTips": true
+    "interval": 5,
+    "messageMode": "always",
+    "showTips": true,
+    "files": {
+        "mental_tips.json": {
+            "enabled": true,
+            "duration": 8,
+            "weight": 2,
+            "displayMode": "random",
+            "displayName": "メンタルヘルス100のコツ"
+        }
+    },
+    "lastUpdated": "2025-06-21 09:13:54"
 }
