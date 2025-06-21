@@ -1,11 +1,12 @@
 // ─────────────────────────────────────────────────
 // 待合室表示システム - 表示制御JavaScript
+// 順番表示完全対応・改行対応・レイアウト改善版
 // ─────────────────────────────────────────────────
 
 /**
- * 表示管理クラス（シンプル版）
+ * 表示管理クラス（順番表示完全対応版）
  */
-class SimpleDisplayManager {
+class DisplayManager {
   constructor() {
     // DOM要素
     this.categoryTitle = null;
@@ -17,9 +18,9 @@ class SimpleDisplayManager {
     this.contentFiles = [];
     this.loadedContents = {};
     this.settings = {
-      interval: 20,
-      messageMode: 'sync',
-      showTips: true
+      interval: 20,    // コンテンツ切替間隔（秒）
+      duration: 8,     // コンテンツ表示時間（秒）
+      showTips: true   // コンテンツ表示ON/OFF
     };
     this.message = { text: '', visible: false };
     this.status = {
@@ -33,6 +34,11 @@ class SimpleDisplayManager {
     this.displayInterval = null;
     this.dataInterval = null;
     this.isInitialized = false;
+    
+    // 順番表示専用
+    this.sequentialFiles = {};       // 連続表示ファイルの管理
+    this.currentSequentialFile = 0;  // 現在の連続表示ファイルインデックス
+    this.displayModeCache = {};      // 表示モードキャッシュ
   }
 
   /**
@@ -53,10 +59,11 @@ class SimpleDisplayManager {
       
       // 初期表示
       this.renderStatus();
+      this.renderMessage();
       this.updateTitle();
       
       // 表示開始
-      if (this.contentQueue.length > 0) {
+      if (this.hasContent() && this.settings.showTips) {
         this.startDisplay();
       } else {
         this.showFallback();
@@ -67,7 +74,7 @@ class SimpleDisplayManager {
       
       this.isInitialized = true;
       Performance.end('display_init');
-      log('info', 'Display manager initialized successfully');
+      log('info', 'Display manager initialized successfully with sequential support');
       
     } catch (error) {
       log('error', 'Failed to initialize display manager:', error);
@@ -146,9 +153,9 @@ class SimpleDisplayManager {
       () => fetchJSON('data/settings.json'),
       'Failed to load settings',
       {
-        interval: 20,
-        messageMode: 'sync',
-        showTips: true,
+        interval: 20,    // コンテンツ切替間隔
+        duration: 8,     // コンテンツ表示時間
+        showTips: true,  // コンテンツ表示ON/OFF
         files: {}
       }
     );
@@ -213,17 +220,25 @@ class SimpleDisplayManager {
             throw new Error('Invalid JSON format');
           }
           
+          // 表示モードの決定（優先順位: ファイル設定 > メタデータ > デフォルト）
+          const displayMode = (fileSettings && fileSettings.displayMode) || 
+                            metaData.displayMode || 
+                            'random';
+          
           this.loadedContents[file.filename] = {
             data: contentData,
             meta: metaData,
             settings: {
-              duration: (fileSettings && fileSettings.duration) || 8,
+              duration: (fileSettings && fileSettings.duration) || this.settings.duration || 8,
               weight: (fileSettings && fileSettings.weight) || 1,
-              displayMode: (fileSettings && fileSettings.displayMode) || metaData.displayMode || "random"
+              displayMode: displayMode
             }
           };
           
-          log('info', `Loaded content: ${file.filename} (${contentData.length} items)`);
+          // 表示モードキャッシュに保存
+          this.displayModeCache[file.filename] = displayMode;
+          
+          log('info', `Loaded content: ${file.filename} (${contentData.length} items, mode: ${displayMode})`);
           
         } catch (error) {
           log('warn', `Failed to load content ${file.filename}:`, error);
@@ -233,16 +248,77 @@ class SimpleDisplayManager {
   }
 
   /**
-   * コンテンツキューの構築
+   * コンテンツキューの構築（順番表示完全対応版）
    */
   buildContentQueue() {
     this.contentQueue = [];
+    this.sequentialFiles = {};
+    
+    // ファイル別に表示モードで分類
+    const randomFiles = [];
+    const orderFiles = [];
+    const sequentialFiles = [];
     
     Object.entries(this.loadedContents).forEach(([filename, contentObj]) => {
       const { data, meta, settings } = contentObj;
+      const displayMode = settings.displayMode || 'random';
+      
+      switch (displayMode) {
+        case 'sequence':
+          sequentialFiles.push({ filename, contentObj });
+          // 連続表示ファイルの状態を初期化
+          this.sequentialFiles[filename] = {
+            currentIndex: 0,
+            items: data,
+            meta: meta,
+            settings: settings,
+            totalItems: data.length
+          };
+          break;
+          
+        case 'order':
+          orderFiles.push({ filename, contentObj });
+          break;
+          
+        default: // 'random'
+          randomFiles.push({ filename, contentObj });
+          break;
+      }
+    });
+    
+    // 1. 連続表示ファイルがある場合
+    if (sequentialFiles.length > 0) {
+      this.currentSequentialFile = 0;
+      log('info', `Sequential mode: ${sequentialFiles.length} files will be displayed in order`);
+      
+      // 順番表示がメインの場合はキューは使わない
+      if (randomFiles.length === 0 && orderFiles.length === 0) {
+        log('info', 'Pure sequential mode activated');
+        return;
+      }
+    }
+    
+    // 2. 順番表示ファイルの処理
+    orderFiles.forEach(({ filename, contentObj }) => {
+      const { data, meta, settings } = contentObj;
+      data.forEach((item, index) => {
+        this.contentQueue.push({
+          filename,
+          item,
+          index,
+          meta,
+          settings,
+          originalOrder: index, // 元の順番を保持
+          displayMode: 'order'
+        });
+      });
+    });
+    
+    // 3. ランダム表示ファイルの処理（重み付き）
+    randomFiles.forEach(({ filename, contentObj }) => {
+      const { data, meta, settings } = contentObj;
       const weight = settings.weight || 1;
       
-      // 重み付きでキューに追加
       data.forEach((item, index) => {
         for (let i = 0; i < weight; i++) {
           this.contentQueue.push({
@@ -250,48 +326,95 @@ class SimpleDisplayManager {
             item,
             index,
             meta,
-            settings
+            settings,
+            displayMode: 'random'
           });
         }
       });
     });
     
-    // シャッフル
-    shuffleArray(this.contentQueue);
+    // 4. ランダム部分のみシャッフル（順番表示部分は保持）
+    if (randomFiles.length > 0) {
+      const randomPart = this.contentQueue.filter(item => item.displayMode === 'random');
+      const orderPart = this.contentQueue.filter(item => item.displayMode === 'order');
+      
+      shuffleArray(randomPart);
+      
+      // 順番表示とランダム表示を適切に配置
+      this.contentQueue = [...orderPart, ...randomPart];
+    }
+    
     this.currentIndex = 0;
     
-    log('info', `Built content queue with ${this.contentQueue.length} items`);
+    log('info', `Built content queue: ${this.contentQueue.length} items, sequential files: ${Object.keys(this.sequentialFiles).length}`);
   }
 
   /**
-   * 表示開始
+   * コンテンツがあるかチェック
+   */
+  hasContent() {
+    return (Object.keys(this.sequentialFiles).length > 0) || (this.contentQueue.length > 0);
+  }
+
+  /**
+   * 表示開始（順番表示対応版）
    */
   startDisplay() {
     if (this.displayInterval) {
       clearInterval(this.displayInterval);
     }
     
+    if (!this.settings.showTips) {
+      log('info', 'Content display is disabled');
+      return;
+    }
+    
+    if (!this.hasContent()) {
+      log('info', 'No content available');
+      return;
+    }
+    
+    // 連続表示の初期化
+    if (Object.keys(this.sequentialFiles).length > 0) {
+      this.currentSequentialFile = 0;
+      
+      // 保存された表示位置を復元
+      this.loadSequentialProgress();
+    }
+    
     // 初回表示
     this.showNextContent();
     
-    // 定期表示
+    // 定期表示（切替間隔で制御）
     this.displayInterval = setInterval(() => {
       this.showNextContent();
     }, this.settings.interval * 1000);
     
-    log('info', `Display started with interval: ${this.settings.interval}s`);
+    const mode = Object.keys(this.sequentialFiles).length > 0 ? 'sequential' : 'queue';
+    log('info', `Display started in ${mode} mode with interval: ${this.settings.interval}s`);
   }
 
   /**
-   * 次のコンテンツを表示
+   * 次のコンテンツを表示（順番表示対応版）
    */
   showNextContent() {
-    if (!this.settings.showTips || this.contentQueue.length === 0) {
+    if (!this.settings.showTips) {
+      return;
+    }
+    
+    // 連続表示ファイルがある場合の処理
+    if (Object.keys(this.sequentialFiles).length > 0) {
+      this.showSequentialContent();
+      return;
+    }
+    
+    // 通常のキュー表示
+    if (this.contentQueue.length === 0) {
       return;
     }
     
     const content = this.contentQueue[this.currentIndex];
-    const { item, meta, settings, index } = content;
+    const { item, meta, settings } = content;
     
     // カテゴリタイトル更新
     this.updateTitle(meta);
@@ -302,79 +425,225 @@ class SimpleDisplayManager {
     // 次のインデックス
     this.currentIndex = (this.currentIndex + 1) % this.contentQueue.length;
     
-    // 一周したらシャッフル
+    // 一周したらランダム部分のみシャッフル
     if (this.currentIndex === 0) {
-      shuffleArray(this.contentQueue);
-      log('info', 'Content queue reshuffled');
-    }
-    
-    // メッセージ同期表示
-    if (this.settings.messageMode === 'sync' && this.message.visible && this.message.text) {
-      setTimeout(() => {
-        this.showMessage();
-      }, (settings.duration * 1000) / 2);
+      this.reshuffleRandomContent();
     }
   }
 
   /**
-   * コンテンツの表示
+   * 連続表示の処理（完全版）
+   */
+  showSequentialContent() {
+    const fileNames = Object.keys(this.sequentialFiles);
+    if (fileNames.length === 0) return;
+    
+    // 現在のファイル
+    const currentFileName = fileNames[this.currentSequentialFile];
+    const fileData = this.sequentialFiles[currentFileName];
+    
+    if (!fileData || fileData.currentIndex >= fileData.items.length) {
+      // 現在のファイルが終了、次のファイルへ
+      this.currentSequentialFile = (this.currentSequentialFile + 1) % fileNames.length;
+      
+      // 全ファイルが一周した場合、全てリセット
+      if (this.currentSequentialFile === 0) {
+        Object.keys(this.sequentialFiles).forEach(filename => {
+          this.sequentialFiles[filename].currentIndex = 0;
+        });
+        log('info', 'Sequential display completed one full cycle, restarting from beginning');
+      } else {
+        log('info', `Sequential display: Moving to next file (${fileNames[this.currentSequentialFile]})`);
+      }
+      
+      // 進捗を保存
+      this.saveSequentialProgress();
+      
+      // 再帰的に次のコンテンツを取得
+      this.showSequentialContent();
+      return;
+    }
+    
+    // 現在のアイテムを表示
+    const item = fileData.items[fileData.currentIndex];
+    const meta = fileData.meta;
+    const settings = fileData.settings;
+    
+    // カテゴリタイトル更新
+    this.updateTitle(meta);
+    
+    // メインコンテンツ表示
+    this.displayContent(item, settings);
+    
+    // 次のアイテムへ
+    this.sequentialFiles[currentFileName].currentIndex++;
+    
+    // 進捗を保存
+    this.saveSequentialProgress();
+    
+    log('debug', `Sequential: ${currentFileName} [${fileData.currentIndex}/${fileData.totalItems}] - ${item.title}`);
+  }
+
+  /**
+   * ランダムコンテンツのみ再シャッフル
+   */
+  reshuffleRandomContent() {
+    const randomPart = this.contentQueue.filter(item => item.displayMode === 'random');
+    const otherPart = this.contentQueue.filter(item => item.displayMode !== 'random');
+    
+    if (randomPart.length > 0) {
+      shuffleArray(randomPart);
+      this.contentQueue = [...otherPart, ...randomPart];
+      log('info', 'Random content reshuffled, sequential order preserved');
+    }
+  }
+
+  /**
+   * 順番表示の進捗を保存
+   */
+  saveSequentialProgress() {
+    try {
+      const progress = {
+        currentFile: this.currentSequentialFile,
+        fileProgress: {}
+      };
+      
+      Object.entries(this.sequentialFiles).forEach(([filename, data]) => {
+        progress.fileProgress[filename] = data.currentIndex;
+      });
+      
+      localStorage.setItem('sequentialProgress', JSON.stringify(progress));
+    } catch (error) {
+      log('warn', 'Failed to save sequential progress:', error);
+    }
+  }
+
+  /**
+   * 順番表示の進捗を読み込み
+   */
+  loadSequentialProgress() {
+    try {
+      const saved = localStorage.getItem('sequentialProgress');
+      if (saved) {
+        const progress = JSON.parse(saved);
+        
+        this.currentSequentialFile = progress.currentFile || 0;
+        
+        if (progress.fileProgress) {
+          Object.entries(progress.fileProgress).forEach(([filename, index]) => {
+            if (this.sequentialFiles[filename]) {
+              this.sequentialFiles[filename].currentIndex = index;
+            }
+          });
+        }
+        
+        log('info', 'Sequential progress restored');
+      }
+    } catch (error) {
+      log('warn', 'Failed to load sequential progress:', error);
+    }
+  }
+
+  /**
+   * 順番表示をリセット
+   */
+  resetSequentialProgress() {
+    Object.keys(this.sequentialFiles).forEach(filename => {
+      this.sequentialFiles[filename].currentIndex = 0;
+    });
+    this.currentSequentialFile = 0;
+    
+    try {
+      localStorage.removeItem('sequentialProgress');
+    } catch (error) {
+      log('warn', 'Failed to clear sequential progress:', error);
+    }
+    
+    log('info', 'Sequential progress reset to beginning');
+  }
+
+  /**
+   * コンテンツの表示（改行対応版）
    */
   displayContent(item, settings) {
-    const duration = settings.duration || 8;
+    const duration = settings.duration || this.settings.duration || 8;
     
     // フェードアウト
     this.mainContent.classList.remove('show');
     
     setTimeout(() => {
-      // コンテンツ更新
-      this.mainContent.innerHTML = `
-        <h2>${item.icon || '💡'} ${item.title}</h2>
-        <p>${item.text}</p>
-      `;
+      // コンテンツ更新（安全にテキスト設定）
+      this.mainContent.innerHTML = '';
+      
+      const titleElement = document.createElement('h2');
+      const textElement = document.createElement('p');
+      
+      // タイトルとテキストを安全に設定（改行保持）
+      TextUtils.setElementText(titleElement, `${item.icon || '💡'} ${item.title}`, true);
+      TextUtils.setElementText(textElement, item.text, true);
+      
+      this.mainContent.appendChild(titleElement);
+      this.mainContent.appendChild(textElement);
       
       // フェードイン
       this.mainContent.classList.add('show');
     }, 300);
     
-    // 自動フェードアウト
+    // 自動フェードアウト（表示時間で制御）
     setTimeout(() => {
       this.mainContent.classList.remove('show');
     }, duration * 1000);
+    
+    log('debug', `Displayed content for ${duration}s: ${item.title}`);
   }
 
   /**
-   * カテゴリタイトルの更新
+   * カテゴリタイトルの更新（改行対応版）
    */
   updateTitle(meta = null) {
     if (!this.categoryTitle) return;
     
+    let titleText = '';
+    
     if (meta) {
-      this.categoryTitle.textContent = `${meta.icon || '💡'} ${meta.title}`;
+      titleText = `${meta.icon || '💡'} ${meta.title}`;
     } else if (Object.keys(this.loadedContents).length > 0) {
       const firstContent = Object.values(this.loadedContents)[0];
-      this.categoryTitle.textContent = `${firstContent.meta.icon || '💡'} ${firstContent.meta.title}`;
+      titleText = `${firstContent.meta.icon || '💡'} ${firstContent.meta.title}`;
     } else {
-      this.categoryTitle.textContent = '💡 待合室表示システム';
+      titleText = '💡 待合室表示システム';
     }
+    
+    // タイトルの長さをチェックして改行処理
+    const processedTitle = TextUtils.optimizeTitle(titleText, 15);
+    
+    // 改行が含まれている場合はmulti-lineクラスを追加
+    if (processedTitle.includes('\n')) {
+      this.categoryTitle.classList.add('multi-line');
+    } else {
+      this.categoryTitle.classList.remove('multi-line');
+    }
+    
+    // テキストを安全に設定
+    TextUtils.setElementText(this.categoryTitle, processedTitle, true);
   }
 
   /**
-   * メッセージ表示
+   * メッセージ表示（改行対応版）
    */
-  showMessage() {
-    if (!this.message.visible || !this.message.text) {
+  renderMessage() {
+    if (!this.messageArea) return;
+    
+    if (this.message.visible && this.message.text) {
+      // メッセージを安全に処理
+      this.messageArea.innerHTML = '';
+      const messageElement = document.createElement('p');
+      TextUtils.setElementText(messageElement, this.message.text, true);
+      this.messageArea.appendChild(messageElement);
+      
+      this.messageArea.classList.add('show');
+    } else {
       this.messageArea.classList.remove('show');
-      return;
-    }
-    
-    this.messageArea.innerHTML = `<p>${this.message.text}</p>`;
-    this.messageArea.classList.add('show');
-    
-    // 常時表示でない場合は自動で非表示
-    if (this.settings.messageMode !== 'always') {
-      setTimeout(() => {
-        this.messageArea.classList.remove('show');
-      }, 5000);
     }
   }
 
@@ -422,6 +691,9 @@ class SimpleDisplayManager {
     
     this.dataInterval = setInterval(async () => {
       try {
+        const oldInterval = this.settings.interval;
+        const oldShowTips = this.settings.showTips;
+        
         // 設定とデータの更新
         await Promise.all([
           this.loadSettings(),
@@ -431,12 +703,20 @@ class SimpleDisplayManager {
         
         // UI更新
         this.renderStatus();
-        this.showMessage();
+        this.renderMessage();
         
-        // 表示間隔の変更チェック
-        if (this.displayInterval) {
-          clearInterval(this.displayInterval);
-          this.startDisplay();
+        // 表示間隔やコンテンツ表示設定の変更チェック
+        if (this.settings.interval !== oldInterval || this.settings.showTips !== oldShowTips) {
+          log('info', `Settings changed: interval ${oldInterval}→${this.settings.interval}, showTips ${oldShowTips}→${this.settings.showTips}`);
+          
+          // 表示制御の再開始
+          if (this.displayInterval) {
+            clearInterval(this.displayInterval);
+          }
+          
+          if (this.settings.showTips && this.hasContent()) {
+            this.startDisplay();
+          }
         }
         
       } catch (error) {
@@ -449,7 +729,7 @@ class SimpleDisplayManager {
    * フォールバック表示
    */
   showFallback() {
-    this.categoryTitle.textContent = '💡 待合室表示システム';
+    TextUtils.setElementText(this.categoryTitle, '💡 待合室表示システム', false);
     
     const fallbackTips = [
       { icon: '💡', title: 'システム準備中', text: 'コンテンツを読み込んでいます。しばらくお待ちください。' },
@@ -460,7 +740,16 @@ class SimpleDisplayManager {
     
     const showFallback = () => {
       const tip = fallbackTips[currentTip];
-      this.mainContent.innerHTML = `<h2>${tip.icon} ${tip.title}</h2><p>${tip.text}</p>`;
+      this.mainContent.innerHTML = '';
+      
+      const titleElement = document.createElement('h2');
+      const textElement = document.createElement('p');
+      
+      TextUtils.setElementText(titleElement, `${tip.icon} ${tip.title}`, false);
+      TextUtils.setElementText(textElement, tip.text, false);
+      
+      this.mainContent.appendChild(titleElement);
+      this.mainContent.appendChild(textElement);
       this.mainContent.classList.add('show');
       
       setTimeout(() => {
@@ -478,8 +767,17 @@ class SimpleDisplayManager {
    * エラー表示
    */
   showError(message) {
-    this.categoryTitle.textContent = '⚠️ システムエラー';
-    this.mainContent.innerHTML = `<h2>システムエラー</h2><p>${message}</p>`;
+    TextUtils.setElementText(this.categoryTitle, '⚠️ システムエラー', false);
+    
+    this.mainContent.innerHTML = '';
+    const titleElement = document.createElement('h2');
+    const textElement = document.createElement('p');
+    
+    TextUtils.setElementText(titleElement, 'システムエラー', false);
+    TextUtils.setElementText(textElement, message, false);
+    
+    this.mainContent.appendChild(titleElement);
+    this.mainContent.appendChild(textElement);
     this.mainContent.classList.add('show', 'error');
   }
 
@@ -496,6 +794,29 @@ class SimpleDisplayManager {
     this.isInitialized = false;
     log('info', 'Display manager destroyed');
   }
+
+  /**
+   * 現在の表示状態を取得（デバッグ用）
+   */
+  getDisplayStatus() {
+    const status = {
+      isSequentialMode: Object.keys(this.sequentialFiles).length > 0,
+      currentSequentialFile: this.currentSequentialFile,
+      sequentialFiles: {},
+      queueLength: this.contentQueue.length,
+      currentQueueIndex: this.currentIndex
+    };
+    
+    Object.entries(this.sequentialFiles).forEach(([filename, data]) => {
+      status.sequentialFiles[filename] = {
+        currentIndex: data.currentIndex,
+        totalItems: data.totalItems,
+        progress: `${data.currentIndex + 1}/${data.totalItems}`
+      };
+    });
+    
+    return status;
+  }
 }
 
 // ─────────────────────────────────────────────────
@@ -508,13 +829,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   try {
     log('info', 'Starting display system initialization');
     
-    displayManager = new SimpleDisplayManager();
+    displayManager = new DisplayManager();
     await displayManager.init();
-    
-    // 常時メッセージ表示の初期チェック
-    if (displayManager.settings.messageMode === 'always') {
-      displayManager.showMessage();
-    }
     
   } catch (error) {
     log('error', 'Failed to start display system:', error);
@@ -541,4 +857,16 @@ window.addEventListener('beforeunload', () => {
 // デバッグ用（開発環境のみ）
 if (DEBUG) {
   window.displayManager = displayManager;
+  
+  // デバッグ用関数を追加
+  window.resetSequence = () => {
+    if (displayManager) {
+      displayManager.resetSequentialProgress();
+      log('info', 'Sequence reset via debug command');
+    }
+  };
+  
+  window.getDisplayStatus = () => {
+    return displayManager ? displayManager.getDisplayStatus() : null;
+  };
 }

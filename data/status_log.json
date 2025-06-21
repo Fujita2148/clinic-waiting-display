@@ -134,5 +134,90 @@
             "ip": "118.6.2.215",
             "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"
         }
+    },
+    {
+        "timestamp": "2025-06-21 15:17:35",
+        "room1": {
+            "label": "第1診察室",
+            "number": 2,
+            "visible": true
+        },
+        "room2": {
+            "label": "第2診察室",
+            "number": 15,
+            "visible": true
+        },
+        "client": {
+            "ip": "118.6.2.215",
+            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"
+        }
+    },
+    {
+        "timestamp": "2025-06-21 16:51:28",
+        "room1": {
+            "label": "第1診察室",
+            "number": 3,
+            "visible": true
+        },
+        "room2": {
+            "label": "第2診察室",
+            "number": 15,
+            "visible": true
+        },
+        "client": {
+            "ip": "118.6.2.215",
+            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"
+        }
+    },
+    {
+        "timestamp": "2025-06-21 16:51:46",
+        "room1": {
+            "label": "第1診察室",
+            "number": 0,
+            "visible": false
+        },
+        "room2": {
+            "label": "第2診察室",
+            "number": 0,
+            "visible": false
+        },
+        "client": {
+            "ip": "118.6.2.215",
+            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"
+        }
+    },
+    {
+        "timestamp": "2025-06-21 16:51:56",
+        "room1": {
+            "label": "第1診察室",
+            "number": 0,
+            "visible": true
+        },
+        "room2": {
+            "label": "第2診察室",
+            "number": 0,
+            "visible": false
+        },
+        "client": {
+            "ip": "118.6.2.215",
+            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"
+        }
+    },
+    {
+        "timestamp": "2025-06-21 16:52:06",
+        "room1": {
+            "label": "第1診察室",
+            "number": 1,
+            "visible": true
+        },
+        "room2": {
+            "label": "第2診察室",
+            "number": 0,
+            "visible": false
+        },
+        "client": {
+            "ip": "118.6.2.215",
+            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"
+        }
     }
 ]
