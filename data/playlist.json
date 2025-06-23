@@ -1,0 +1,37 @@
+{
+    "playlist": [
+        {
+            "filename": "mental-tips-activity.json",
+            "displayName": "活動とリラックス",
+            "itemCount": 20
+        },
+        {
+            "filename": "mental-tips-mindset.json",
+            "displayName": "心の持ち方",
+            "itemCount": 20
+        },
+        {
+            "filename": "mental-tips-morning.json",
+            "displayName": "朝と日中の活動",
+            "itemCount": 20
+        }
+    ],
+    "playlistString": "A, B, C",
+    "shortcutMap": {
+        "A": "mental-tips-activity.json",
+        "B": "mental-tips-mindset.json",
+        "C": "mental-tips-morning.json",
+        "D": "mental-tips-rest.json",
+        "E": "mental-tips-wellness.json"
+    },
+    "totalFiles": 3,
+    "totalItems": 60,
+    "currentPlaylistIndex": 0,
+    "currentFileIndex": 0,
+    "lastUpdated": "2025-06-23 12:08:19",
+    "updatedBy": {
+        "ip": "118.6.2.215",
+        "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36",
+        "timestamp": "2025-06-23 12:08:19"
+    }
+}

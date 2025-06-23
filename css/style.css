@@ -1,6 +1,6 @@
 /* ─────────────────────────────────────────────────
    待合室表示システム CSS
-   レイアウト改善・改行対応・40型モニタ最適化
+   プレイリスト管理・改行対応・40型モニタ最適化
 ───────────────────────────────────────────────── */
 
 /* リセット */
@@ -457,6 +457,11 @@ body.control-screen h1 {
   background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
 }
 
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+}
+
 /* 統計表示 */
 .stats {
   display: flex;
@@ -480,6 +485,122 @@ body.control-screen h1 {
   font-size: 14px;
   color: #555;
   word-break: break-word;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   プレイリスト管理UI専用スタイル（新規追加）
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/* プレイリストプレビュー */
+.playlist-preview {
+  margin: 15px 0;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.playlist-items {
+  margin-top: 10px;
+  font-size: 0.95rem;
+  line-height: 1.8;
+  padding: 10px;
+  background: white;
+  border-radius: 4px;
+  min-height: 50px;
+}
+
+/* プレイリストアイテムの状態表示 */
+.playlist-item-valid {
+  color: #27ae60;
+  font-weight: 500;
+  padding: 2px 6px;
+  margin: 0 3px;
+  background: rgba(39, 174, 96, 0.1);
+  border-radius: 3px;
+}
+
+.playlist-item-invalid {
+  color: #e74c3c;
+  font-weight: 500;
+  padding: 2px 6px;
+  margin: 0 3px;
+  background: rgba(231, 76, 60, 0.1);
+  border-radius: 3px;
+}
+
+/* クイック設定ボタン */
+.quick-settings {
+  margin: 15px 0;
+  padding: 10px 0;
+  border-top: 1px solid #dee2e6;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.quick-settings label {
+  display: inline-block;
+  margin-right: 10px;
+  font-weight: 500;
+  color: #495057;
+}
+
+/* 利用可能ファイル一覧 */
+.available-files {
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+  font-size: 0.9rem;
+}
+
+.available-files strong {
+  color: #667eea;
+  font-weight: 600;
+  padding: 2px 6px;
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 3px;
+}
+
+/* プレイリスト進行状況 */
+#playlistProgress {
+  margin-top: 15px;
+  padding: 15px;
+  background: #e8f4f8;
+  border-radius: 8px;
+  border: 1px solid #b8e2f2;
+  font-size: 0.9rem;
+}
+
+#playlistProgressDetails {
+  margin-top: 8px;
+  line-height: 1.6;
+  color: #495057;
+}
+
+/* 表示モード関連（削除予定だが互換性のため残す） */
+.display-mode-help {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 15px;
+  padding: 10px;
+  background: #fefefe;
+  border-left: 3px solid #667eea;
+}
+
+#sequenceOptions {
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
+.sequence-info {
+  background: #fff;
+  padding: 12px;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  color: #666;
+  border: 1px solid #e9ecef;
 }
 
 /* トースト通知 */
@@ -511,4 +632,31 @@ body.control-screen h1 {
   padding: 20px;
   color: #666;
   font-style: italic;
+}
+
+/* レスポンシブ対応（コントロール画面） */
+@media (max-width: 768px) {
+  body.control-screen {
+    padding: 10px;
+  }
+  
+  .card {
+    margin-bottom: 15px;
+  }
+  
+  .card-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .stats {
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .quick-settings .btn-sm {
+    display: block;
+    width: 100%;
+    margin-bottom: 5px;
+  }
 }

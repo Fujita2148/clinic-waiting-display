@@ -1,12 +1,12 @@
 // ─────────────────────────────────────────────────
-// 待合室表示システム - 表示制御JavaScript
-// 順番表示完全対応・改行対応・レイアウト改善版
+// 待合室表示システム - PlaylistDisplayManager
+// プレイリスト方式・アイテムレベルタイミング対応版
 // ─────────────────────────────────────────────────
 
 /**
- * 表示管理クラス（順番表示完全対応版）
+ * プレイリスト表示管理クラス（簡素化版）
  */
-class DisplayManager {
+class PlaylistDisplayManager {
   constructor() {
     // DOM要素
     this.categoryTitle = null;
@@ -15,12 +15,12 @@ class DisplayManager {
     this.statusCard = null;
     
     // データ
-    this.contentFiles = [];
+    this.playlist = null;
     this.loadedContents = {};
     this.settings = {
-      interval: 20,    // コンテンツ切替間隔（秒）
-      duration: 8,     // コンテンツ表示時間（秒）
-      showTips: true   // コンテンツ表示ON/OFF
+      interval: 20,    // デフォルト待ち時間（waitTime）
+      duration: 8,     // デフォルト表示時間（displayTime）
+      showTips: true
     };
     this.message = { text: '', visible: false };
     this.status = {
@@ -28,17 +28,12 @@ class DisplayManager {
       room2: { label: '第2診察室', number: 0, visible: false }
     };
     
-    // 表示制御
-    this.contentQueue = [];
-    this.currentIndex = 0;
-    this.displayInterval = null;
+    // プレイリスト制御
+    this.currentPlaylistIndex = 0;
+    this.currentFileIndex = 0;
+    this.currentTimeout = null;
     this.dataInterval = null;
     this.isInitialized = false;
-    
-    // 順番表示専用
-    this.sequentialFiles = {};       // 連続表示ファイルの管理
-    this.currentSequentialFile = 0;  // 現在の連続表示ファイルインデックス
-    this.displayModeCache = {};      // 表示モードキャッシュ
   }
 
   /**
@@ -46,7 +41,7 @@ class DisplayManager {
    */
   async init() {
     try {
-      Performance.start('display_init');
+      Performance.start('playlist_init');
       
       // DOM要素の取得
       this.initializeElements();
@@ -54,17 +49,13 @@ class DisplayManager {
       // 初期データ読み込み
       await this.loadAllData();
       
-      // コンテンツキューの構築
-      this.buildContentQueue();
-      
       // 初期表示
       this.renderStatus();
       this.renderMessage();
-      this.updateTitle();
       
-      // 表示開始
-      if (this.hasContent() && this.settings.showTips) {
-        this.startDisplay();
+      // プレイリスト開始
+      if (this.playlist && this.playlist.hasPlaylist && this.settings.showTips) {
+        this.startPlaylist();
       } else {
         this.showFallback();
       }
@@ -73,11 +64,11 @@ class DisplayManager {
       this.startDataPolling();
       
       this.isInitialized = true;
-      Performance.end('display_init');
-      log('info', 'Display manager initialized successfully with sequential support');
+      Performance.end('playlist_init');
+      log('info', 'PlaylistDisplayManager initialized successfully');
       
     } catch (error) {
-      log('error', 'Failed to initialize display manager:', error);
+      log('error', 'Failed to initialize PlaylistDisplayManager:', error);
       this.showError('システムの初期化に失敗しました');
     }
   }
@@ -122,26 +113,59 @@ class DisplayManager {
    */
   async loadAllData() {
     await Promise.all([
-      this.loadContentFiles(),
+      this.loadPlaylist(),
       this.loadSettings(),
       this.loadMessage(),
       this.loadStatus()
     ]);
-    
-    await this.loadEnabledContents();
   }
 
   /**
-   * コンテンツファイル一覧の読み込み
+   * プレイリストの読み込み
    */
-  async loadContentFiles() {
+  async loadPlaylist() {
     try {
-      const response = await fetchJSON('php/get_files.php');
-      this.contentFiles = response.files || [];
-      log('info', `Loaded ${this.contentFiles.length} content files`);
+      const response = await fetchJSON('php/get_playlist_status.php');
+      this.playlist = response.data || null;
+      
+      if (this.playlist && this.playlist.hasPlaylist) {
+        // インデックスの復元
+        this.currentPlaylistIndex = this.playlist.currentPlaylistIndex || 0;
+        this.currentFileIndex = this.playlist.currentFileIndex || 0;
+        
+        // プレイリストのコンテンツを事前読み込み
+        await this.preloadPlaylistContents();
+        
+        log('info', `Loaded playlist with ${this.playlist.totalFiles} files`);
+      }
     } catch (error) {
-      log('warn', 'Failed to load content files:', error);
-      this.contentFiles = [];
+      log('warn', 'Failed to load playlist:', error);
+      this.playlist = null;
+    }
+  }
+
+  /**
+   * プレイリストのコンテンツを事前読み込み
+   */
+  async preloadPlaylistContents() {
+    if (!this.playlist || !this.playlist.playlist) return;
+    
+    const uniqueFiles = new Set();
+    this.playlist.playlist.forEach(item => {
+      if (item.filename) {
+        uniqueFiles.add(item.filename);
+      }
+    });
+    
+    // 各ファイルを読み込み
+    for (const filename of uniqueFiles) {
+      try {
+        const content = await fetchJSON(`data/contents/${filename}`);
+        this.loadedContents[filename] = content;
+        log('info', `Preloaded content: ${filename}`);
+      } catch (error) {
+        log('warn', `Failed to load content ${filename}:`, error);
+      }
     }
   }
 
@@ -153,10 +177,9 @@ class DisplayManager {
       () => fetchJSON('data/settings.json'),
       'Failed to load settings',
       {
-        interval: 20,    // コンテンツ切替間隔
-        duration: 8,     // コンテンツ表示時間
-        showTips: true,  // コンテンツ表示ON/OFF
-        files: {}
+        interval: 20,    // デフォルトwaitTime
+        duration: 8,     // デフォルトdisplayTime
+        showTips: true
       }
     );
   }
@@ -187,398 +210,153 @@ class DisplayManager {
   }
 
   /**
-   * 有効なコンテンツの読み込み
+   * プレイリスト表示開始
    */
-  async loadEnabledContents() {
-    this.loadedContents = {};
-    
-    for (const file of this.contentFiles) {
-      const fileSettings = this.settings.files && this.settings.files[file.filename];
-      
-      // デフォルト設定
-      const enabled = fileSettings ? fileSettings.enabled !== false : true;
-      
-      if (enabled) {
-        try {
-          const rawData = await fetchJSON(`data/contents/${file.filename}`);
-          
-          let contentData, metaData;
-          
-          if (rawData.meta && rawData.items) {
-            // 新フォーマット
-            metaData = rawData.meta;
-            contentData = rawData.items;
-          } else if (Array.isArray(rawData)) {
-            // 旧フォーマット（フォールバック）
-            contentData = rawData;
-            metaData = {
-              title: generateTitleFromFilename(file.filename),
-              icon: "💡",
-              displayMode: "random"
-            };
-          } else {
-            throw new Error('Invalid JSON format');
-          }
-          
-          // 表示モードの決定（優先順位: ファイル設定 > メタデータ > デフォルト）
-          const displayMode = (fileSettings && fileSettings.displayMode) || 
-                            metaData.displayMode || 
-                            'random';
-          
-          this.loadedContents[file.filename] = {
-            data: contentData,
-            meta: metaData,
-            settings: {
-              duration: (fileSettings && fileSettings.duration) || this.settings.duration || 8,
-              weight: (fileSettings && fileSettings.weight) || 1,
-              displayMode: displayMode
-            }
-          };
-          
-          // 表示モードキャッシュに保存
-          this.displayModeCache[file.filename] = displayMode;
-          
-          log('info', `Loaded content: ${file.filename} (${contentData.length} items, mode: ${displayMode})`);
-          
-        } catch (error) {
-          log('warn', `Failed to load content ${file.filename}:`, error);
-        }
-      }
+  startPlaylist() {
+    if (!this.playlist || !this.playlist.hasPlaylist || !this.settings.showTips) {
+      return;
     }
+    
+    // 現在のタイムアウトをクリア
+    if (this.currentTimeout) {
+      clearTimeout(this.currentTimeout);
+      this.currentTimeout = null;
+    }
+    
+    // 次のアイテムを表示
+    this.showNextItem();
   }
 
   /**
-   * コンテンツキューの構築（順番表示完全対応版）
+   * 次のアイテムを表示
    */
-  buildContentQueue() {
-    this.contentQueue = [];
-    this.sequentialFiles = {};
-    
-    // ファイル別に表示モードで分類
-    const randomFiles = [];
-    const orderFiles = [];
-    const sequentialFiles = [];
-    
-    Object.entries(this.loadedContents).forEach(([filename, contentObj]) => {
-      const { data, meta, settings } = contentObj;
-      const displayMode = settings.displayMode || 'random';
-      
-      switch (displayMode) {
-        case 'sequence':
-          sequentialFiles.push({ filename, contentObj });
-          // 連続表示ファイルの状態を初期化
-          this.sequentialFiles[filename] = {
-            currentIndex: 0,
-            items: data,
-            meta: meta,
-            settings: settings,
-            totalItems: data.length
-          };
-          break;
-          
-        case 'order':
-          orderFiles.push({ filename, contentObj });
-          break;
-          
-        default: // 'random'
-          randomFiles.push({ filename, contentObj });
-          break;
-      }
-    });
-    
-    // 1. 連続表示ファイルがある場合
-    if (sequentialFiles.length > 0) {
-      this.currentSequentialFile = 0;
-      log('info', `Sequential mode: ${sequentialFiles.length} files will be displayed in order`);
-      
-      // 順番表示がメインの場合はキューは使わない
-      if (randomFiles.length === 0 && orderFiles.length === 0) {
-        log('info', 'Pure sequential mode activated');
-        return;
-      }
-    }
-    
-    // 2. 順番表示ファイルの処理
-    orderFiles.forEach(({ filename, contentObj }) => {
-      const { data, meta, settings } = contentObj;
-      data.forEach((item, index) => {
-        this.contentQueue.push({
-          filename,
-          item,
-          index,
-          meta,
-          settings,
-          originalOrder: index, // 元の順番を保持
-          displayMode: 'order'
-        });
-      });
-    });
-    
-    // 3. ランダム表示ファイルの処理（重み付き）
-    randomFiles.forEach(({ filename, contentObj }) => {
-      const { data, meta, settings } = contentObj;
-      const weight = settings.weight || 1;
-      
-      data.forEach((item, index) => {
-        for (let i = 0; i < weight; i++) {
-          this.contentQueue.push({
-            filename,
-            item,
-            index,
-            meta,
-            settings,
-            displayMode: 'random'
-          });
-        }
-      });
-    });
-    
-    // 4. ランダム部分のみシャッフル（順番表示部分は保持）
-    if (randomFiles.length > 0) {
-      const randomPart = this.contentQueue.filter(item => item.displayMode === 'random');
-      const orderPart = this.contentQueue.filter(item => item.displayMode === 'order');
-      
-      shuffleArray(randomPart);
-      
-      // 順番表示とランダム表示を適切に配置
-      this.contentQueue = [...orderPart, ...randomPart];
-    }
-    
-    this.currentIndex = 0;
-    
-    log('info', `Built content queue: ${this.contentQueue.length} items, sequential files: ${Object.keys(this.sequentialFiles).length}`);
-  }
-
-  /**
-   * コンテンツがあるかチェック
-   */
-  hasContent() {
-    return (Object.keys(this.sequentialFiles).length > 0) || (this.contentQueue.length > 0);
-  }
-
-  /**
-   * 表示開始（順番表示対応版）
-   */
-  startDisplay() {
-    if (this.displayInterval) {
-      clearInterval(this.displayInterval);
-    }
-    
-    if (!this.settings.showTips) {
-      log('info', 'Content display is disabled');
+  async showNextItem() {
+    if (!this.playlist || !this.playlist.hasPlaylist || !this.settings.showTips) {
       return;
     }
     
-    if (!this.hasContent()) {
-      log('info', 'No content available');
+    const playlistItems = this.playlist.playlist;
+    if (!playlistItems || playlistItems.length === 0) {
+      log('warn', 'No items in playlist');
       return;
     }
     
-    // 連続表示の初期化
-    if (Object.keys(this.sequentialFiles).length > 0) {
-      this.currentSequentialFile = 0;
-      
-      // 保存された表示位置を復元
-      this.loadSequentialProgress();
-    }
-    
-    // 初回表示
-    this.showNextContent();
-    
-    // 定期表示（切替間隔で制御）
-    this.displayInterval = setInterval(() => {
-      this.showNextContent();
-    }, this.settings.interval * 1000);
-    
-    const mode = Object.keys(this.sequentialFiles).length > 0 ? 'sequential' : 'queue';
-    log('info', `Display started in ${mode} mode with interval: ${this.settings.interval}s`);
-  }
-
-  /**
-   * 次のコンテンツを表示（順番表示対応版）
-   */
-  showNextContent() {
-    if (!this.settings.showTips) {
+    // 現在のファイル情報を取得
+    const currentFile = playlistItems[this.currentPlaylistIndex];
+    if (!currentFile || !currentFile.filename) {
+      log('warn', 'Invalid playlist item at index', this.currentPlaylistIndex);
+      this.moveToNextPlaylistItem();
       return;
     }
     
-    // 連続表示ファイルがある場合の処理
-    if (Object.keys(this.sequentialFiles).length > 0) {
-      this.showSequentialContent();
+    // コンテンツを取得
+    const content = this.loadedContents[currentFile.filename];
+    if (!content) {
+      log('warn', `Content not loaded for ${currentFile.filename}`);
+      this.moveToNextPlaylistItem();
       return;
     }
     
-    // 通常のキュー表示
-    if (this.contentQueue.length === 0) {
+    // アイテム配列を取得（新旧フォーマット対応）
+    const items = content.items || content;
+    if (!Array.isArray(items) || items.length === 0) {
+      log('warn', `No items in content ${currentFile.filename}`);
+      this.moveToNextPlaylistItem();
       return;
     }
     
-    const content = this.contentQueue[this.currentIndex];
-    const { item, meta, settings } = content;
+    // 現在のアイテムを取得
+    if (this.currentFileIndex >= items.length) {
+      this.currentFileIndex = 0;
+      this.moveToNextPlaylistItem();
+      return;
+    }
+    
+    const currentItem = items[this.currentFileIndex];
+    
+    // タイミング設定を取得（優先順位：アイテム > ファイル > グローバル）
+    const timing = this.getItemTiming(currentItem, content);
     
     // カテゴリタイトル更新
+    const meta = content.meta || { 
+      title: currentFile.displayName || currentFile.filename,
+      icon: '💡'
+    };
     this.updateTitle(meta);
     
-    // メインコンテンツ表示
-    this.displayContent(item, settings);
+    // アイテムを表示
+    this.displayItem(currentItem, timing.displayTime);
     
-    // 次のインデックス
-    this.currentIndex = (this.currentIndex + 1) % this.contentQueue.length;
+    // プレイリスト状態を保存
+    await this.savePlaylistState();
     
-    // 一周したらランダム部分のみシャッフル
-    if (this.currentIndex === 0) {
-      this.reshuffleRandomContent();
-    }
-  }
-
-  /**
-   * 連続表示の処理（完全版）
-   */
-  showSequentialContent() {
-    const fileNames = Object.keys(this.sequentialFiles);
-    if (fileNames.length === 0) return;
-    
-    // 現在のファイル
-    const currentFileName = fileNames[this.currentSequentialFile];
-    const fileData = this.sequentialFiles[currentFileName];
-    
-    if (!fileData || fileData.currentIndex >= fileData.items.length) {
-      // 現在のファイルが終了、次のファイルへ
-      this.currentSequentialFile = (this.currentSequentialFile + 1) % fileNames.length;
+    // 次のアイテムまでの待機
+    this.currentTimeout = setTimeout(() => {
+      this.currentFileIndex++;
       
-      // 全ファイルが一周した場合、全てリセット
-      if (this.currentSequentialFile === 0) {
-        Object.keys(this.sequentialFiles).forEach(filename => {
-          this.sequentialFiles[filename].currentIndex = 0;
-        });
-        log('info', 'Sequential display completed one full cycle, restarting from beginning');
+      // 現在のファイルの最後に達した場合
+      if (this.currentFileIndex >= items.length) {
+        this.currentFileIndex = 0;
+        this.moveToNextPlaylistItem();
       } else {
-        log('info', `Sequential display: Moving to next file (${fileNames[this.currentSequentialFile]})`);
+        this.showNextItem();
       }
+    }, timing.waitTime * 1000);
+    
+    log('debug', `Displayed: ${currentFile.filename}[${this.currentFileIndex}] - wait: ${timing.waitTime}s, display: ${timing.displayTime}s`);
+  }
+
+  /**
+   * アイテムのタイミング設定を取得
+   */
+  getItemTiming(item, content) {
+    // 優先順位：アイテム個別 > ファイルデフォルト > グローバル設定
+    const waitTime = 
+      item.waitTime || 
+      (content.defaultTiming && content.defaultTiming.waitTime) || 
+      this.settings.interval || 
+      20;
       
-      // 進捗を保存
-      this.saveSequentialProgress();
-      
-      // 再帰的に次のコンテンツを取得
-      this.showSequentialContent();
-      return;
-    }
+    const displayTime = 
+      item.displayTime || 
+      (content.defaultTiming && content.defaultTiming.displayTime) || 
+      this.settings.duration || 
+      8;
     
-    // 現在のアイテムを表示
-    const item = fileData.items[fileData.currentIndex];
-    const meta = fileData.meta;
-    const settings = fileData.settings;
-    
-    // カテゴリタイトル更新
-    this.updateTitle(meta);
-    
-    // メインコンテンツ表示
-    this.displayContent(item, settings);
-    
-    // 次のアイテムへ
-    this.sequentialFiles[currentFileName].currentIndex++;
-    
-    // 進捗を保存
-    this.saveSequentialProgress();
-    
-    log('debug', `Sequential: ${currentFileName} [${fileData.currentIndex}/${fileData.totalItems}] - ${item.title}`);
+    return { waitTime, displayTime };
   }
 
   /**
-   * ランダムコンテンツのみ再シャッフル
+   * 次のプレイリストアイテムへ移動
    */
-  reshuffleRandomContent() {
-    const randomPart = this.contentQueue.filter(item => item.displayMode === 'random');
-    const otherPart = this.contentQueue.filter(item => item.displayMode !== 'random');
+  moveToNextPlaylistItem() {
+    this.currentPlaylistIndex++;
     
-    if (randomPart.length > 0) {
-      shuffleArray(randomPart);
-      this.contentQueue = [...otherPart, ...randomPart];
-      log('info', 'Random content reshuffled, sequential order preserved');
+    // プレイリストの最後に達した場合
+    if (this.currentPlaylistIndex >= this.playlist.playlist.length) {
+      this.currentPlaylistIndex = 0;
+      log('info', 'Playlist completed, restarting from beginning');
     }
+    
+    this.currentFileIndex = 0;
+    this.showNextItem();
   }
 
   /**
-   * 順番表示の進捗を保存
+   * アイテムの表示
    */
-  saveSequentialProgress() {
-    try {
-      const progress = {
-        currentFile: this.currentSequentialFile,
-        fileProgress: {}
-      };
-      
-      Object.entries(this.sequentialFiles).forEach(([filename, data]) => {
-        progress.fileProgress[filename] = data.currentIndex;
-      });
-      
-      localStorage.setItem('sequentialProgress', JSON.stringify(progress));
-    } catch (error) {
-      log('warn', 'Failed to save sequential progress:', error);
-    }
-  }
-
-  /**
-   * 順番表示の進捗を読み込み
-   */
-  loadSequentialProgress() {
-    try {
-      const saved = localStorage.getItem('sequentialProgress');
-      if (saved) {
-        const progress = JSON.parse(saved);
-        
-        this.currentSequentialFile = progress.currentFile || 0;
-        
-        if (progress.fileProgress) {
-          Object.entries(progress.fileProgress).forEach(([filename, index]) => {
-            if (this.sequentialFiles[filename]) {
-              this.sequentialFiles[filename].currentIndex = index;
-            }
-          });
-        }
-        
-        log('info', 'Sequential progress restored');
-      }
-    } catch (error) {
-      log('warn', 'Failed to load sequential progress:', error);
-    }
-  }
-
-  /**
-   * 順番表示をリセット
-   */
-  resetSequentialProgress() {
-    Object.keys(this.sequentialFiles).forEach(filename => {
-      this.sequentialFiles[filename].currentIndex = 0;
-    });
-    this.currentSequentialFile = 0;
-    
-    try {
-      localStorage.removeItem('sequentialProgress');
-    } catch (error) {
-      log('warn', 'Failed to clear sequential progress:', error);
-    }
-    
-    log('info', 'Sequential progress reset to beginning');
-  }
-
-  /**
-   * コンテンツの表示（改行対応版）
-   */
-  displayContent(item, settings) {
-    const duration = settings.duration || this.settings.duration || 8;
-    
+  displayItem(item, displayTime) {
     // フェードアウト
     this.mainContent.classList.remove('show');
     
     setTimeout(() => {
-      // コンテンツ更新（安全にテキスト設定）
+      // コンテンツ更新
       this.mainContent.innerHTML = '';
       
       const titleElement = document.createElement('h2');
       const textElement = document.createElement('p');
       
-      // タイトルとテキストを安全に設定（改行保持）
+      // タイトルとテキストを設定
       TextUtils.setElementText(titleElement, `${item.icon || '💡'} ${item.title}`, true);
       TextUtils.setElementText(textElement, item.text, true);
       
@@ -589,16 +367,14 @@ class DisplayManager {
       this.mainContent.classList.add('show');
     }, 300);
     
-    // 自動フェードアウト（表示時間で制御）
+    // 自動フェードアウト
     setTimeout(() => {
       this.mainContent.classList.remove('show');
-    }, duration * 1000);
-    
-    log('debug', `Displayed content for ${duration}s: ${item.title}`);
+    }, displayTime * 1000);
   }
 
   /**
-   * カテゴリタイトルの更新（改行対応版）
+   * カテゴリタイトルの更新
    */
   updateTitle(meta = null) {
     if (!this.categoryTitle) return;
@@ -607,9 +383,6 @@ class DisplayManager {
     
     if (meta) {
       titleText = `${meta.icon || '💡'} ${meta.title}`;
-    } else if (Object.keys(this.loadedContents).length > 0) {
-      const firstContent = Object.values(this.loadedContents)[0];
-      titleText = `${firstContent.meta.icon || '💡'} ${firstContent.meta.title}`;
     } else {
       titleText = '💡 待合室表示システム';
     }
@@ -624,18 +397,17 @@ class DisplayManager {
       this.categoryTitle.classList.remove('multi-line');
     }
     
-    // テキストを安全に設定
+    // テキストを設定
     TextUtils.setElementText(this.categoryTitle, processedTitle, true);
   }
 
   /**
-   * メッセージ表示（改行対応版）
+   * メッセージ表示
    */
   renderMessage() {
     if (!this.messageArea) return;
     
     if (this.message.visible && this.message.text) {
-      // メッセージを安全に処理
       this.messageArea.innerHTML = '';
       const messageElement = document.createElement('p');
       TextUtils.setElementText(messageElement, this.message.text, true);
@@ -682,6 +454,25 @@ class DisplayManager {
   }
 
   /**
+   * プレイリスト状態の保存
+   */
+  async savePlaylistState() {
+    try {
+      // プレイリスト状態を更新
+      const data = {
+        currentPlaylistIndex: this.currentPlaylistIndex,
+        currentFileIndex: this.currentFileIndex
+      };
+      
+      // 本来はAPIで保存するが、ここではローカルストレージに保存
+      localStorage.setItem('playlistState', JSON.stringify(data));
+      
+    } catch (error) {
+      log('warn', 'Failed to save playlist state:', error);
+    }
+  }
+
+  /**
    * 定期データ更新の開始
    */
   startDataPolling() {
@@ -691,7 +482,6 @@ class DisplayManager {
     
     this.dataInterval = setInterval(async () => {
       try {
-        const oldInterval = this.settings.interval;
         const oldShowTips = this.settings.showTips;
         
         // 設定とデータの更新
@@ -705,17 +495,15 @@ class DisplayManager {
         this.renderStatus();
         this.renderMessage();
         
-        // 表示間隔やコンテンツ表示設定の変更チェック
-        if (this.settings.interval !== oldInterval || this.settings.showTips !== oldShowTips) {
-          log('info', `Settings changed: interval ${oldInterval}→${this.settings.interval}, showTips ${oldShowTips}→${this.settings.showTips}`);
+        // コンテンツ表示設定の変更チェック
+        if (this.settings.showTips !== oldShowTips) {
+          log('info', `showTips changed: ${oldShowTips} → ${this.settings.showTips}`);
           
-          // 表示制御の再開始
-          if (this.displayInterval) {
-            clearInterval(this.displayInterval);
-          }
-          
-          if (this.settings.showTips && this.hasContent()) {
-            this.startDisplay();
+          if (this.settings.showTips && this.playlist && this.playlist.hasPlaylist) {
+            this.startPlaylist();
+          } else if (this.currentTimeout) {
+            clearTimeout(this.currentTimeout);
+            this.currentTimeout = null;
           }
         }
         
@@ -731,36 +519,23 @@ class DisplayManager {
   showFallback() {
     TextUtils.setElementText(this.categoryTitle, '💡 待合室表示システム', false);
     
-    const fallbackTips = [
-      { icon: '💡', title: 'システム準備中', text: 'コンテンツを読み込んでいます。しばらくお待ちください。' },
-      { icon: '🌟', title: 'お知らせ', text: 'システムの準備が完了次第、表示を開始いたします。' }
-    ];
-    
-    let currentTip = 0;
-    
-    const showFallback = () => {
-      const tip = fallbackTips[currentTip];
-      this.mainContent.innerHTML = '';
-      
-      const titleElement = document.createElement('h2');
-      const textElement = document.createElement('p');
-      
-      TextUtils.setElementText(titleElement, `${tip.icon} ${tip.title}`, false);
-      TextUtils.setElementText(textElement, tip.text, false);
-      
-      this.mainContent.appendChild(titleElement);
-      this.mainContent.appendChild(textElement);
-      this.mainContent.classList.add('show');
-      
-      setTimeout(() => {
-        this.mainContent.classList.remove('show');
-      }, 5000);
-      
-      currentTip = (currentTip + 1) % fallbackTips.length;
+    const fallbackContent = {
+      icon: '⚙️',
+      title: 'システム準備中',
+      text: 'プレイリストを設定してください。コントロール画面から設定できます。'
     };
     
-    showFallback();
-    this.displayInterval = setInterval(showFallback, 10000);
+    this.mainContent.innerHTML = '';
+    
+    const titleElement = document.createElement('h2');
+    const textElement = document.createElement('p');
+    
+    TextUtils.setElementText(titleElement, `${fallbackContent.icon} ${fallbackContent.title}`, false);
+    TextUtils.setElementText(textElement, fallbackContent.text, false);
+    
+    this.mainContent.appendChild(titleElement);
+    this.mainContent.appendChild(textElement);
+    this.mainContent.classList.add('show');
   }
 
   /**
@@ -785,37 +560,37 @@ class DisplayManager {
    * 破棄
    */
   destroy() {
-    if (this.displayInterval) {
-      clearInterval(this.displayInterval);
+    if (this.currentTimeout) {
+      clearTimeout(this.currentTimeout);
     }
     if (this.dataInterval) {
       clearInterval(this.dataInterval);
     }
     this.isInitialized = false;
-    log('info', 'Display manager destroyed');
+    log('info', 'PlaylistDisplayManager destroyed');
   }
 
   /**
-   * 現在の表示状態を取得（デバッグ用）
+   * プレイリストのリロード
    */
-  getDisplayStatus() {
-    const status = {
-      isSequentialMode: Object.keys(this.sequentialFiles).length > 0,
-      currentSequentialFile: this.currentSequentialFile,
-      sequentialFiles: {},
-      queueLength: this.contentQueue.length,
-      currentQueueIndex: this.currentIndex
-    };
+  async reloadPlaylist() {
+    log('info', 'Reloading playlist...');
     
-    Object.entries(this.sequentialFiles).forEach(([filename, data]) => {
-      status.sequentialFiles[filename] = {
-        currentIndex: data.currentIndex,
-        totalItems: data.totalItems,
-        progress: `${data.currentIndex + 1}/${data.totalItems}`
-      };
-    });
+    // 現在の表示を停止
+    if (this.currentTimeout) {
+      clearTimeout(this.currentTimeout);
+      this.currentTimeout = null;
+    }
     
-    return status;
+    // プレイリストを再読み込み
+    await this.loadPlaylist();
+    
+    // プレイリストがある場合は再開
+    if (this.playlist && this.playlist.hasPlaylist && this.settings.showTips) {
+      this.startPlaylist();
+    } else {
+      this.showFallback();
+    }
   }
 }
 
@@ -827,9 +602,9 @@ let displayManager = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
   try {
-    log('info', 'Starting display system initialization');
+    log('info', 'Starting PlaylistDisplayManager initialization');
     
-    displayManager = new DisplayManager();
+    displayManager = new PlaylistDisplayManager();
     await displayManager.init();
     
   } catch (error) {
@@ -858,15 +633,10 @@ window.addEventListener('beforeunload', () => {
 if (DEBUG) {
   window.displayManager = displayManager;
   
-  // デバッグ用関数を追加
-  window.resetSequence = () => {
+  // デバッグ用関数
+  window.reloadPlaylist = () => {
     if (displayManager) {
-      displayManager.resetSequentialProgress();
-      log('info', 'Sequence reset via debug command');
+      displayManager.reloadPlaylist();
     }
-  };
-  
-  window.getDisplayStatus = () => {
-    return displayManager ? displayManager.getDisplayStatus() : null;
   };
 }

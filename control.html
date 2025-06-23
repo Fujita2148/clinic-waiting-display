@@ -9,6 +9,48 @@
 <body class="control-screen">
   <h1>🎛️ 待合室表示システム コントロールパネル</h1>
   
+  <!-- プレイリスト管理カード（新規追加） -->
+  <div class="card">
+    <div class="card-header">
+      🎵 プレイリスト管理
+      <button class="btn btn-info" onclick="refreshPlaylist()">🔄 更新</button>
+    </div>
+    <div class="card-content">
+      <div class="form-group">
+        <label>プレイリスト設定</label>
+        <input id="playlistString" type="text" placeholder="例: A, B, A, C または mental_tips, health_tips">
+        <small style="color: #666;">ファイル名または短縮形（A, B, C...）で順序を指定。カンマ区切りで入力してください。</small>
+      </div>
+      
+      <!-- プレイリストプレビュー -->
+      <div id="playlistPreview" class="playlist-preview">
+        <strong>プレイリストプレビュー:</strong>
+        <div id="playlistItems" class="playlist-items">
+          プレイリストを入力してください
+        </div>
+      </div>
+      
+      <!-- クイック設定 -->
+      <div class="quick-settings">
+        <label>クイック設定:</label>
+        <button class="btn btn-sm" onclick="setQuickPlaylist('A')">A のみ</button>
+        <button class="btn btn-sm" onclick="setQuickPlaylist('A, B, A, B')">A-B 交互</button>
+        <button class="btn btn-sm" onclick="setQuickPlaylist('A, A, A, B')">A多め-B少し</button>
+        <button class="btn btn-sm" onclick="setQuickPlaylist('A, B, C')">全ファイル順番</button>
+      </div>
+      
+      <!-- 利用可能ファイル一覧 -->
+      <div class="available-files" style="margin-top: 15px;">
+        <strong>利用可能なファイル:</strong>
+        <div id="availableFiles" style="font-size: 0.9rem; color: #666;">
+          読み込み中...
+        </div>
+      </div>
+      
+      <button class="btn btn-success" onclick="savePlaylist()">💾 プレイリストを保存</button>
+    </div>
+  </div>
+
   <!-- 診察順管理カード -->
   <div class="card">
     <div class="card-header">
@@ -60,7 +102,6 @@
           </label>
         </div>
       </div>
-      <!-- メッセージプレビュー（JavaScriptで動的作成） -->
       <button class="btn btn-success" onclick="saveMessage()">💾 メッセージを更新</button>
       <button class="btn btn-danger" onclick="clearMessage()">🗑️ メッセージを消去</button>
     </div>
@@ -74,56 +115,14 @@
     <div class="card-content">
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
         <div class="form-group">
-          <label>コンテンツ切替間隔（秒）</label>
-          <input id="switchInterval" type="number" min="5" max="120" value="20">
-          <small style="color: #666;">次のコンテンツに切り替わるまでの時間（5-120秒）</small>
+          <label>デフォルト待ち時間（秒）</label>
+          <input id="waitTime" type="number" min="5" max="120" value="20">
+          <small style="color: #666;">アイテム表示後、次のアイテムまでの待ち時間（5-120秒）</small>
         </div>
         <div class="form-group">
-          <label>コンテンツ表示時間（秒）</label>
-          <input id="displayDuration" type="number" min="3" max="60" value="8">
-          <small style="color: #666;">1つのコンテンツを表示している時間（3-60秒）</small>
-        </div>
-      </div>
-      
-      <!-- 表示モード設定（新機能） -->
-      <div class="form-group">
-        <label>表示モード</label>
-        <select id="displayMode" style="margin-bottom: 10px;">
-          <option value="random">ランダム表示（毎回異なる順序）</option>
-          <option value="sequence">順番表示（1→2→3...→最後→1）</option>
-          <option value="order">順番表示（他ファイルと混在）</option>
-        </select>
-        <div class="display-mode-help" style="font-size: 0.9rem; color: #666; margin-bottom: 15px;">
-          <strong>ランダム表示：</strong> 飽きさせない変化のある表示<br>
-          <strong>順番表示：</strong> 1番目から順番に全て表示（学習効果が高い）<br>
-          <strong>混在表示：</strong> 複数ファイル時の順番表示
-        </div>
-      </div>
-      
-      <!-- 順番表示時の詳細設定 -->
-      <div class="form-group" id="sequenceOptions" style="display: none;">
-        <label>順番表示の詳細設定</label>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 10px;">
-          <div>
-            <label style="font-size: 0.9rem; margin-bottom: 5px;">現在の表示位置</label>
-            <div style="display: flex; gap: 10px; align-items: center;">
-              <input id="currentPosition" type="number" min="1" max="100" value="1" style="width: 80px;" readonly>
-              <span style="font-size: 0.9rem;">番目</span>
-              <button class="btn btn-info" onclick="resetSequence()" style="padding: 5px 10px; font-size: 0.8rem;">最初に戻す</button>
-            </div>
-          </div>
-          <div>
-            <label style="font-size: 0.9rem; margin-bottom: 5px;">進行状況</label>
-            <div id="sequenceProgress" style="font-size: 0.9rem; color: #666;">
-              進行状況を確認中...
-            </div>
-          </div>
-        </div>
-        <div class="sequence-info" style="background: #f8f9fa; padding: 10px; border-radius: 5px; font-size: 0.9rem; color: #666;">
-          💡 <strong>順番表示について：</strong><br>
-          ・コツ1番から順番に表示されます<br>
-          ・最後まで行くと自動的に最初に戻ります<br>
-          ・表示位置は自動保存されます
+          <label>デフォルト表示時間（秒）</label>
+          <input id="displayTime" type="number" min="3" max="60" value="8">
+          <small style="color: #666;">1つのアイテムを表示している時間（3-60秒）</small>
         </div>
       </div>
       
@@ -148,7 +147,7 @@
     <div class="card-content">
       <div class="stats" id="systemStats">
         <span>コンテンツファイル: <span id="fileCount">-</span>個</span>
-        <span>表示モード: <span id="currentDisplayMode">-</span></span>
+        <span>プレイリスト: <span id="playlistStatus">-</span></span>
         <span>最終更新: <span id="lastUpdate">-</span></span>
         <span>システム状態: <span id="systemStatus">確認中...</span></span>
       </div>
@@ -156,184 +155,19 @@
         システム情報を読み込み中...
       </div>
       
-      <!-- 表示状態詳細（デバッグ情報） -->
-      <div id="displayStatusDetails" style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 5px; font-size: 0.8rem; color: #666;">
-        表示状態の詳細情報
+      <!-- プレイリスト再生状況 -->
+      <div id="playlistProgress" style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 5px; font-size: 0.9rem;">
+        <strong>再生状況:</strong>
+        <div id="playlistProgressDetails">
+          プレイリストが設定されていません
+        </div>
       </div>
     </div>
   </div>
 
   <!-- JavaScript -->
   <script src="js/common.js"></script>
-  <script src="js/text-utils.js"></script>
+  <script src="js/text_utils.js"></script>
   <script src="js/control.js"></script>
-  
-  <script>
-    // ─────────────────────────────────────────────────
-    // 表示モード設定機能の追加JavaScript
-    // ─────────────────────────────────────────────────
-    
-    // 表示モード変更時の処理
-    document.getElementById('displayMode').addEventListener('change', function() {
-      const sequenceOptions = document.getElementById('sequenceOptions');
-      if (this.value === 'sequence') {
-        sequenceOptions.style.display = 'block';
-        updateSequenceStatus();
-      } else {
-        sequenceOptions.style.display = 'none';
-      }
-    });
-    
-    // 設定読み込みに表示モード設定を追加
-    const originalLoadSettings = loadSettings;
-    async function loadSettings() {
-      await originalLoadSettings();
-      await loadDisplayModeSettings();
-    }
-    
-    // 表示モード設定の読み込み
-    async function loadDisplayModeSettings() {
-      try {
-        const settings = await fetchJSON('data/settings.json');
-        const mental_tips = settings.files && settings.files['mental_tips.json'];
-        
-        if (mental_tips) {
-          const displayMode = mental_tips.displayMode || 'random';
-          document.getElementById('displayMode').value = displayMode;
-          document.getElementById('currentDisplayMode').textContent = getDisplayModeText(displayMode);
-          
-          // 順番表示の場合は詳細オプションを表示
-          if (displayMode === 'sequence') {
-            document.getElementById('sequenceOptions').style.display = 'block';
-            updateSequenceStatus();
-          }
-        }
-      } catch (error) {
-        log('warn', 'Failed to load display mode settings:', error);
-      }
-    }
-    
-    // 表示モードテキストの取得
-    function getDisplayModeText(mode) {
-      switch (mode) {
-        case 'sequence': return '順番表示';
-        case 'order': return '順番表示（混在）';
-        case 'random': 
-        default: return 'ランダム表示';
-      }
-    }
-    
-    // 設定保存に表示モード設定を追加
-    const originalSaveSettings = saveSettings;
-    async function saveSettings() {
-      try {
-        // 基本設定を保存
-        await originalSaveSettings();
-        
-        // 表示モード設定を保存
-        await saveDisplayModeSettings();
-        
-      } catch (error) {
-        log('error', 'Failed to save settings with display mode:', error);
-        showToast('設定の保存に失敗しました', 'error');
-      }
-    }
-    
-    // 表示モード設定の保存
-    async function saveDisplayModeSettings() {
-      try {
-        const displayMode = document.getElementById('displayMode').value;
-        
-        const data = {
-          filename: 'mental_tips.json',
-          displayMode: displayMode
-        };
-        
-        await postJSON('php/save_display_mode.php', data);
-        document.getElementById('currentDisplayMode').textContent = getDisplayModeText(displayMode);
-        
-        log('info', `Display mode saved: ${displayMode}`);
-        
-      } catch (error) {
-        log('error', 'Failed to save display mode:', error);
-        throw error;
-      }
-    }
-    
-    // 順番表示のリセット
-    async function resetSequence() {
-      if (!confirm('順番表示を最初からリセットしますか？')) return;
-      
-      try {
-        await postJSON('php/reset_sequence.php', {});
-        showToast('順番表示をリセットしました');
-        updateSequenceStatus();
-      } catch (error) {
-        log('error', 'Failed to reset sequence:', error);
-        showToast('リセットに失敗しました', 'error');
-      }
-    }
-    
-    // 順番表示の状態更新
-    async function updateSequenceStatus() {
-      try {
-        const response = await fetchJSON('php/get_sequence_status.php');
-        
-        if (response.status === 'success') {
-          const status = response.data;
-          document.getElementById('currentPosition').value = status.currentPosition || 1;
-          document.getElementById('sequenceProgress').textContent = 
-            `${status.currentPosition || 1} / ${status.totalItems || '-'} (${Math.round(((status.currentPosition || 1) / (status.totalItems || 1)) * 100)}%)`;
-        }
-      } catch (error) {
-        log('warn', 'Failed to update sequence status:', error);
-        document.getElementById('sequenceProgress').textContent = '状態取得に失敗しました';
-      }
-    }
-    
-    // システム情報更新に表示状態詳細を追加
-    const originalRefreshSystemInfo = refreshSystemInfo;
-    async function refreshSystemInfo() {
-      await originalRefreshSystemInfo();
-      await updateDisplayStatusDetails();
-    }
-    
-    // 表示状態詳細の更新
-    async function updateDisplayStatusDetails() {
-      try {
-        const response = await fetchJSON('php/get_display_status.php');
-        
-        if (response.status === 'success') {
-          const details = response.data;
-          const detailsElement = document.getElementById('displayStatusDetails');
-          
-          let html = '<strong>表示状態詳細:</strong><br>';
-          html += `モード: ${details.displayMode || 'unknown'}<br>`;
-          
-          if (details.isSequentialMode) {
-            html += `順番表示: ${details.currentFile || '-'}<br>`;
-            Object.entries(details.sequentialFiles || {}).forEach(([filename, info]) => {
-              html += `${filename}: ${info.progress || '-'}<br>`;
-            });
-          } else {
-            html += `キュー: ${details.queueLength || 0}個のアイテム<br>`;
-          }
-          
-          detailsElement.innerHTML = html;
-        }
-      } catch (error) {
-        log('warn', 'Failed to update display status details:', error);
-      }
-    }
-    
-    // 定期的な状態更新
-    setInterval(async () => {
-      if (document.getElementById('displayMode').value === 'sequence') {
-        await updateSequenceStatus();
-      }
-      await updateDisplayStatusDetails();
-    }, 10000); // 10秒間隔
-    
-  </script>
 </body>
 </html>

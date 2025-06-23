@@ -1,10 +1,12 @@
 // ─────────────────────────────────────────────────
 // 待合室システム コントロール画面JavaScript
-// 改行対応・設定明確化・プレビュー機能付き
+// プレイリスト管理機能追加版
 // ─────────────────────────────────────────────────
 
 let isInitialized = false;
 let messagePreviewElement = null;
+let availableFiles = [];
+let currentPlaylist = null;
 
 // 初期化
 document.addEventListener('DOMContentLoaded', async () => {
@@ -12,9 +14,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadAllData();
     setupEventListeners();
     setupMessagePreview();
+    setupPlaylistPreview();
     isInitialized = true;
     updateSystemStatus('システム準備完了');
-    log('info', 'Control panel initialized with text processing');
+    log('info', 'Control panel initialized with playlist support');
   } catch (error) {
     log('error', 'Control panel initialization failed:', error);
     showToast('システムの初期化に失敗しました', 'error');
@@ -33,8 +36,52 @@ async function loadAllData() {
     loadStatus(),
     loadMessage(),
     loadSettings(),
-    loadSystemInfo()
+    loadSystemInfo(),
+    loadPlaylist(),
+    loadAvailableFiles()
   ]);
+}
+
+/**
+ * 利用可能なファイルの読み込み
+ */
+async function loadAvailableFiles() {
+  try {
+    const response = await fetchJSON('php/get_files.php');
+    availableFiles = response.files || [];
+    
+    // ファイル一覧を表示
+    const availableFilesElement = document.getElementById('availableFiles');
+    if (availableFilesElement && availableFiles.length > 0) {
+      const fileList = availableFiles.map((file, index) => {
+        const letter = String.fromCharCode(65 + index); // A, B, C...
+        return `<strong>${letter}</strong>: ${file.displayName} (${file.contentCount}項目)`;
+      }).join(' | ');
+      availableFilesElement.innerHTML = fileList;
+    }
+  } catch (error) {
+    log('warn', 'Failed to load available files:', error);
+  }
+}
+
+/**
+ * プレイリストの読み込み
+ */
+async function loadPlaylist() {
+  try {
+    const response = await fetchJSON('php/get_playlist_status.php');
+    currentPlaylist = response.data;
+    
+    if (currentPlaylist && currentPlaylist.hasPlaylist) {
+      document.getElementById('playlistString').value = currentPlaylist.playlistString || '';
+      updatePlaylistPreview();
+      updatePlaylistStatus();
+    } else {
+      document.getElementById('playlistStatus').textContent = '未設定';
+    }
+  } catch (error) {
+    log('warn', 'Failed to load playlist:', error);
+  }
 }
 
 /**
@@ -58,13 +105,12 @@ async function loadStatus() {
 }
 
 /**
- * メッセージの読み込み（改行対応）
+ * メッセージの読み込み
  */
 async function loadMessage() {
   try {
     const message = await fetchJSON('data/message.json');
     
-    // JSONから読み込んだテキストをテキストエリアに適切に設定
     const messageText = TextUtils.processJsonToTextarea(message.text);
     document.getElementById('messageText').value = messageText;
     document.getElementById('showMessage').checked = message.visible !== false;
@@ -79,26 +125,21 @@ async function loadMessage() {
 }
 
 /**
- * 設定の読み込み（明確化）
+ * 設定の読み込み（新タイミング設定対応）
  */
 async function loadSettings() {
   try {
     const settings = await fetchJSON('data/settings.json');
     
-    // 切替間隔（コンテンツ間の間隔）
-    document.getElementById('switchInterval').value = settings.interval || 20;
-    
-    // 表示時間（1つのコンテンツの表示時間）
-    document.getElementById('displayDuration').value = settings.duration || 8;
-    
-    // コンテンツ表示ON/OFF
+    // waitTime/displayTimeに名称変更
+    document.getElementById('waitTime').value = settings.interval || 20;
+    document.getElementById('displayTime').value = settings.duration || 8;
     document.getElementById('showTips').checked = settings.showTips !== false;
     
   } catch (error) {
     log('warn', 'Failed to load settings:', error);
-    // デフォルト値を設定
-    document.getElementById('switchInterval').value = 20;
-    document.getElementById('displayDuration').value = 8;
+    document.getElementById('waitTime').value = 20;
+    document.getElementById('displayTime').value = 8;
     document.getElementById('showTips').checked = true;
   }
 }
@@ -126,11 +167,157 @@ async function loadSystemInfo() {
 }
 
 // ─────────────────────────────────────────────────
+// プレイリスト管理関数
+// ─────────────────────────────────────────────────
+
+/**
+ * プレイリストプレビューの設定
+ */
+function setupPlaylistPreview() {
+  const playlistInput = document.getElementById('playlistString');
+  
+  playlistInput.addEventListener('input', debounce(() => {
+    updatePlaylistPreview();
+  }, 300));
+}
+
+/**
+ * プレイリストプレビューの更新
+ */
+function updatePlaylistPreview() {
+  const playlistString = document.getElementById('playlistString').value.trim();
+  const previewElement = document.getElementById('playlistItems');
+  
+  if (!playlistString) {
+    previewElement.innerHTML = '<span style="color: #999;">プレイリストを入力してください</span>';
+    return;
+  }
+  
+  // プレイリスト文字列を解析
+  const items = playlistString.split(',').map(item => item.trim()).filter(item => item);
+  
+  if (items.length === 0) {
+    previewElement.innerHTML = '<span style="color: #e74c3c;">有効なアイテムがありません</span>';
+    return;
+  }
+  
+  // 各アイテムを解決
+  const resolvedItems = items.map((item, index) => {
+    // 短縮形（A, B, C...）の場合
+    if (item.length === 1 && item >= 'A' && item <= 'Z') {
+      const fileIndex = item.charCodeAt(0) - 65;
+      if (availableFiles[fileIndex]) {
+        return {
+          original: item,
+          resolved: availableFiles[fileIndex].displayName,
+          valid: true
+        };
+      }
+    }
+    
+    // ファイル名で検索
+    const file = availableFiles.find(f => 
+      f.filename === item || 
+      f.filename === item + '.json' ||
+      f.displayName === item
+    );
+    
+    if (file) {
+      return {
+        original: item,
+        resolved: file.displayName,
+        valid: true
+      };
+    }
+    
+    return {
+      original: item,
+      resolved: item,
+      valid: false
+    };
+  });
+  
+  // プレビューHTML生成
+  const previewHtml = resolvedItems.map((item, index) => {
+    const className = item.valid ? 'playlist-item-valid' : 'playlist-item-invalid';
+    const icon = item.valid ? '✓' : '✗';
+    return `<span class="${className}">${index + 1}. ${icon} ${item.resolved}</span>`;
+  }).join(' → ');
+  
+  previewElement.innerHTML = previewHtml;
+}
+
+/**
+ * クイックプレイリスト設定
+ */
+function setQuickPlaylist(pattern) {
+  document.getElementById('playlistString').value = pattern;
+  updatePlaylistPreview();
+}
+
+/**
+ * プレイリストの保存
+ */
+async function savePlaylist() {
+  try {
+    const playlistString = document.getElementById('playlistString').value.trim();
+    
+    if (!playlistString) {
+      throw new Error('プレイリストを入力してください');
+    }
+    
+    const data = {
+      playlistString: playlistString
+    };
+    
+    const response = await postJSON('php/save_playlist.php', data);
+    
+    if (response.status === 'success') {
+      showToast('プレイリストを保存しました');
+      await loadPlaylist();
+      updatePlaylistStatus();
+    } else {
+      throw new Error(response.message || 'プレイリストの保存に失敗しました');
+    }
+    
+  } catch (error) {
+    log('error', 'Failed to save playlist:', error);
+    showToast(error.message || 'プレイリストの保存に失敗しました', 'error');
+  }
+}
+
+/**
+ * プレイリスト状態の更新
+ */
+function updatePlaylistStatus() {
+  if (currentPlaylist && currentPlaylist.hasPlaylist) {
+    const status = `${currentPlaylist.totalFiles}ファイル (${currentPlaylist.totalItems}項目)`;
+    document.getElementById('playlistStatus').textContent = status;
+    
+    // 再生状況の更新
+    const progressElement = document.getElementById('playlistProgressDetails');
+    if (progressElement && currentPlaylist.currentFile) {
+      const progress = `
+        現在: ${currentPlaylist.currentFile.displayName}
+        ${currentPlaylist.currentFile.currentItem ? 
+          `(${currentPlaylist.currentFile.currentItem.index + 1}番目: ${currentPlaylist.currentFile.currentItem.title})` : 
+          ''}
+        <br>進行: ${currentPlaylist.progress}
+      `;
+      progressElement.innerHTML = progress;
+    }
+  } else {
+    document.getElementById('playlistStatus').textContent = '未設定';
+    document.getElementById('playlistProgressDetails').innerHTML = 'プレイリストが設定されていません';
+  }
+}
+
+// ─────────────────────────────────────────────────
 // イベントリスナー設定
 // ─────────────────────────────────────────────────
 
 /**
- * イベントリスナーの設定（改行対応）
+ * イベントリスナーの設定
  */
 function setupEventListeners() {
   const messageText = document.getElementById('messageText');
@@ -157,25 +344,25 @@ function setupMessagePreview() {
  * フォーム検証の設定
  */
 function setupFormValidation() {
-  // 切替間隔の検証
-  const switchInterval = document.getElementById('switchInterval');
-  switchInterval.addEventListener('input', () => {
-    const value = parseInt(switchInterval.value);
+  // 待ち時間の検証
+  const waitTime = document.getElementById('waitTime');
+  waitTime.addEventListener('input', () => {
+    const value = parseInt(waitTime.value);
     if (value < 5 || value > 120) {
-      switchInterval.style.borderColor = '#e74c3c';
+      waitTime.style.borderColor = '#e74c3c';
     } else {
-      switchInterval.style.borderColor = '#ddd';
+      waitTime.style.borderColor = '#ddd';
     }
   });
   
   // 表示時間の検証
-  const displayDuration = document.getElementById('displayDuration');
-  displayDuration.addEventListener('input', () => {
-    const value = parseInt(displayDuration.value);
+  const displayTime = document.getElementById('displayTime');
+  displayTime.addEventListener('input', () => {
+    const value = parseInt(displayTime.value);
     if (value < 3 || value > 60) {
-      displayDuration.style.borderColor = '#e74c3c';
+      displayTime.style.borderColor = '#e74c3c';
     } else {
-      displayDuration.style.borderColor = '#ddd';
+      displayTime.style.borderColor = '#ddd';
     }
   });
   
@@ -240,14 +427,13 @@ async function resetStatus() {
 }
 
 /**
- * メッセージの保存（改行対応）
+ * メッセージの保存
  */
 async function saveMessage() {
   try {
     const messageTextElement = document.getElementById('messageText');
     const rawText = messageTextElement.value;
     
-    // テキストエリアの改行を保持して処理
     const processedText = TextUtils.processTextareaInput(rawText);
     
     const data = {
@@ -281,19 +467,19 @@ async function clearMessage() {
 }
 
 /**
- * 設定の保存
+ * 設定の保存（新タイミング設定対応）
  */
 async function saveSettings() {
   try {
     const data = {
-      interval: parseInt(document.getElementById('switchInterval').value) || 20,
-      duration: parseInt(document.getElementById('displayDuration').value) || 8,
+      interval: parseInt(document.getElementById('waitTime').value) || 20,
+      duration: parseInt(document.getElementById('displayTime').value) || 8,
       showTips: document.getElementById('showTips').checked
     };
     
     // 入力値の検証
     if (data.interval < 5 || data.interval > 120) {
-      throw new Error('切替間隔は5-120秒の範囲で設定してください');
+      throw new Error('待ち時間は5-120秒の範囲で設定してください');
     }
     
     if (data.duration < 3 || data.duration > 60) {
@@ -322,7 +508,7 @@ function updateMessagePreview() {
 }
 
 /**
- * メッセージ統計の更新（改行カウント対応）
+ * メッセージ統計の更新
  */
 function updateMessageStats() {
   const text = document.getElementById('messageText').value;
@@ -340,6 +526,22 @@ function updateSystemStatus(status) {
 // ─────────────────────────────────────────────────
 // データ再読み込み関数
 // ─────────────────────────────────────────────────
+
+/**
+ * プレイリストの再読み込み
+ */
+async function refreshPlaylist() {
+  try {
+    updateSystemStatus('プレイリストを更新中...');
+    await loadPlaylist();
+    await loadAvailableFiles();
+    updateSystemStatus('プレイリストを更新しました');
+    showToast('プレイリストを再読み込みしました');
+  } catch (error) {
+    updateSystemStatus('更新に失敗しました');
+    showToast('プレイリストの再読み込みに失敗しました', 'error');
+  }
+}
 
 /**
  * 診察順の再読み込み
@@ -363,6 +565,8 @@ async function refreshSystemInfo() {
   try {
     updateSystemStatus('システム情報を更新中...');
     await loadSystemInfo();
+    await loadPlaylist();
+    updatePlaylistStatus();
     updateSystemStatus('システム情報を更新しました');
     showToast('システム情報を更新しました');
   } catch (error) {
@@ -402,8 +606,60 @@ setInterval(async () => {
   if (isInitialized) {
     try {
       await loadSystemInfo();
+      await loadPlaylist();
+      updatePlaylistStatus();
     } catch (error) {
-      log('warn', 'Background system info update failed:', error);
+      log('warn', 'Background update failed:', error);
     }
   }
 }, 30000); // 30秒間隔
+
+// ─────────────────────────────────────────────────
+// プレイリストUI用のスタイル追加
+// ─────────────────────────────────────────────────
+
+// 動的スタイルの追加
+const style = document.createElement('style');
+style.textContent = `
+  .playlist-preview {
+    margin: 15px 0;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+  }
+  
+  .playlist-items {
+    margin-top: 8px;
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+  
+  .playlist-item-valid {
+    color: #27ae60;
+    font-weight: 500;
+  }
+  
+  .playlist-item-invalid {
+    color: #e74c3c;
+    font-weight: 500;
+  }
+  
+  .quick-settings {
+    margin: 15px 0;
+  }
+  
+  .quick-settings .btn-sm {
+    padding: 5px 10px;
+    font-size: 0.85rem;
+    margin-right: 5px;
+  }
+  
+  .available-files {
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+  }
+`;
+document.head.appendChild(style);
