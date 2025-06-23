@@ -1,5 +1,5 @@
 {
-    "interval": 5,
+    "interval": 20,
     "duration": 8,
     "messageMode": "always",
     "showTips": true,
@@ -11,5 +11,5 @@
             "displayName": "メンタルヘルス100のコツ"
         }
     },
-    "lastUpdated": "2025-06-23 11:42:28"
+    "lastUpdated": "2025-06-23 17:54:13"
 }

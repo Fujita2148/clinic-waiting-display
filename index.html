@@ -1,54 +1,74 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>待合室表示システム</title>
-  <link rel="stylesheet" href="css/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>待合室表示システム</title>
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <!-- 背景動画（オプション） -->
-  <video id="bg-video" autoplay muted loop playsinline style="display: none;">
-    <source src="assets/background.mp4" type="video/mp4">
-  </video>
-  
-  <!-- 背景グラデーション -->
-  <div class="bg-gradient"></div>
-  
-  <!-- メイン表示コンテナ -->
-  <div class="display-container">
-    <!-- カテゴリタイトル（左上） -->
-    <div class="category-title" id="categoryTitle">
-      💡 システム起動中
+    <!-- メイン表示エリア -->
+    <div class="main-container">
+        <!-- カテゴリタイトル -->
+        <div id="category-title" class="category-title">
+            待合室表示システム
+        </div>
+        
+        <!-- プレイリストコンテンツ表示エリア -->
+        <div id="playlist-content" class="playlist-content">
+            <div class="loading">
+                ⏳ システムを起動しています...しばらくお待ちください
+            </div>
+        </div>
     </div>
     
-    <!-- メインコンテンツ（中央） -->
-    <div class="main-content" id="mainContent">
-      <h2>システムを起動しています...</h2>
-      <p>しばらくお待ちください</p>
+    <!-- サイドバー -->
+    <div class="sidebar">
+        <!-- 診察順表示 -->
+        <div id="status-cards" class="status-cards">
+            <div class="status-card">
+                <div class="room-label">診察室1</div>
+                <div class="room-number">-</div>
+            </div>
+            <div class="status-card">
+                <div class="room-label">診察室2</div>
+                <div class="room-number">-</div>
+            </div>
+        </div>
+        
+        <!-- メッセージ表示 -->
+        <div id="message-content" class="message-content">
+            <div class="message-text"></div>
+        </div>
     </div>
     
-    <!-- メッセージエリア（下部） -->
-    <div class="message-area" id="messageArea">
-      <p>お知らせがある場合はこちらに表示されます</p>
-    </div>
+    <!-- 背景動画（オプション） -->
+    <video id="background-video" autoplay muted loop style="display: none;">
+        <source src="assets/background.mp4" type="video/mp4">
+    </video>
     
-    <!-- 診察順カード（右下） -->
-    <div class="status-card" id="statusCard">
-      <h4>🩺 診察順のご案内</h4>
-      <div class="room-info">
-        <div class="room-label">第1診察室</div>
-        <div class="room-number">-</div>
-      </div>
-      <div class="room-info">
-        <div class="room-label">第2診察室</div>
-        <div class="room-number">-</div>
-      </div>
-    </div>
-  </div>
-  
-  <!-- JavaScript -->
-  <script src="js/common.js"></script>
-  <script src="js/display.js"></script>
+    <!-- JavaScript読み込み -->
+    <script src="js/common.js"></script>
+    <script src="js/text_utils.js"></script>
+    <script src="js/display.js"></script>
+    
+    <!-- 初期化スクリプト -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 DOM読み込み完了 - displayManager初期化開始');
+            try {
+                window.displayManager = new PlaylistDisplayManager();
+                window.displayManager.init()
+                    .then(() => {
+                        console.log('✅ displayManager初期化完了');
+                    })
+                    .catch(error => {
+                        console.error('❌ displayManager初期化失敗:', error);
+                    });
+            } catch (error) {
+                console.error('❌ displayManager作成失敗:', error);
+            }
+        });
+    </script>
 </body>
 </html>

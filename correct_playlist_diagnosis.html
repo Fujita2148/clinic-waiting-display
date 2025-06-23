@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 プレイリスト自動検出診断</title>
+    <style>
+        body { font-family: sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px; background: #f5f7fa; }
+        .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; padding: 10px; border-radius: 5px; margin: 5px 0; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; padding: 10px; border-radius: 5px; margin: 5px 0; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; padding: 10px; border-radius: 5px; margin: 5px 0; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; padding: 10px; border-radius: 5px; margin: 5px 0; }
+        button { background: #3498db; color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; margin: 5px; }
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
+        th { background: #3498db; color: white; }
+        pre { background: #2c3e50; color: #ecf0f1; padding: 15px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 プレイリスト自動検出システム診断</h1>
+        
+        <div class="info">
+            <strong>正しい仕組み:</strong><br>
+            1. <code>php/get_files.php</code> が <code>data/contents/</code> 内のJSONファイルを自動検出<br>
+            2. ファイル名順にソートしてA, B, C...を自動割り当て<br>
+            3. ユーザーは「A, B, C」などの組み合わせでプレイリストを指定<br>
+            4. システムが実際のファイル名に自動変換して実行
+        </div>
+
+        <h3>📁 ステップ1: ファイル自動検出テスト</h3>
+        <div id="fileDetectionResult"></div>
+        <button onclick="testFileDetection()">ファイル検出をテスト</button>
+
+        <h3>🔤 ステップ2: ショートカット自動生成テスト</h3>
+        <div id="shortcutResult"></div>
+        <button onclick="testShortcutGeneration()">ショートカット生成をテスト</button>
+
+        <h3>📋 ステップ3: プレイリスト自動作成テスト</h3>
+        <div id="playlistCreationResult"></div>
+        <button onclick="testPlaylistCreation()">プレイリスト自動作成をテスト</button>
+
+        <h3>🔧 ステップ4: 自動修復</h3>
+        <div id="autoFixResult"></div>
+        <button onclick="autoFixPlaylist()">プレイリストを自動修復</button>
+
+        <h3>📊 システム情報</h3>
+        <div id="systemInfo">
+            <pre id="debugInfo">診断を実行してください...</pre>
+        </div>
+    </div>
+
+    <script>
+        let availableFiles = [];
+        let shortcutMap = {};
+
+        // ファイル検出テスト
+        async function testFileDetection() {
+            const resultDiv = document.getElementById('fileDetectionResult');
+            resultDiv.innerHTML = '<div class="info">ファイル検出中...</div>';
+
+            try {
+                const response = await fetch('php/get_files.php', { cache: 'no-cache' });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                availableFiles = data.files || [];
+
+                let result = `<div class="success">✅ ファイル検出API成功</div>`;
+                result += `<div class="info">📁 検出されたファイル数: ${availableFiles.length}</div>`;
+
+                if (availableFiles.length > 0) {
+                    result += `<table><tr><th>ファイル名</th><th>表示名</th><th>項目数</th><th>サイズ</th></tr>`;
+                    availableFiles.forEach(file => {
+                        result += `<tr>
+                            <td>${file.filename}</td>
+                            <td>${file.displayName}</td>
+                            <td>${file.contentCount}</td>
+                            <td>${file.size} bytes</td>
+                        </tr>`;
+                    });
+                    result += `</table>`;
+                } else {
+                    result += `<div class="error">❌ data/contents/ 内にJSONファイルが見つかりません</div>`;
+                    result += `<div class="warning">💡 以下のファイルが存在するか確認してください:<br>
+                        - mental-tips-activity.json<br>
+                        - mental-tips-mindset.json<br>
+                        - mental-tips-morning.json<br>
+                        - mental-tips-rest.json<br>
+                        - mental-tips-wellness.json</div>`;
+                }
+
+                resultDiv.innerHTML = result;
+
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ ファイル検出失敗: ${error.message}</div>
+                    <div class="warning">💡 考えられる原因:<br>
+                    - php/get_files.php が存在しない<br>
+                    - PHPファイルの実行権限がない<br>
+                    - data/contents/ ディレクトリが存在しない</div>`;
+            }
+        }
+
+        // ショートカット生成テスト
+        function testShortcutGeneration() {
+            const resultDiv = document.getElementById('shortcutResult');
+
+            if (availableFiles.length === 0) {
+                resultDiv.innerHTML = `<div class="error">❌ 先にファイル検出テストを実行してください</div>`;
+                return;
+            }
+
+            // ファイル名でソート
+            const sortedFiles = [...availableFiles].sort((a, b) => a.filename.localeCompare(b.filename));
+            
+            // ショートカットマップ生成
+            shortcutMap = {};
+            let result = `<div class="success">✅ ショートカット自動生成成功</div>`;
+            result += `<table><tr><th>ショートカット</th><th>ファイル名</th><th>表示名</th></tr>`;
+
+            sortedFiles.forEach((file, index) => {
+                const letter = String.fromCharCode(65 + index); // A, B, C...
+                shortcutMap[letter] = file.filename;
+                result += `<tr>
+                    <td><strong>${letter}</strong></td>
+                    <td>${file.filename}</td>
+                    <td>${file.displayName}</td>
+                </tr>`;
+            });
+
+            result += `</table>`;
+            result += `<div class="info">💡 プレイリスト例: "${Object.keys(shortcutMap).join(', ')}"</div>`;
+
+            resultDiv.innerHTML = result;
+        }
+
+        // プレイリスト作成テスト
+        async function testPlaylistCreation() {
+            const resultDiv = document.getElementById('playlistCreationResult');
+
+            if (Object.keys(shortcutMap).length === 0) {
+                resultDiv.innerHTML = `<div class="error">❌ 先にショートカット生成テストを実行してください</div>`;
+                return;
+            }
+
+            resultDiv.innerHTML = '<div class="info">プレイリスト作成中...</div>';
+
+            try {
+                // 全ファイルを使ったプレイリスト文字列を生成
+                const playlistString = Object.keys(shortcutMap).join(', ');
+                
+                const playlistData = {
+                    playlistString: playlistString
+                };
+
+                const response = await fetch('php/save_playlist.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(playlistData)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    let output = `<div class="success">✅ プレイリスト作成成功</div>`;
+                    output += `<div class="info">📋 プレイリスト文字列: "${playlistString}"</div>`;
+                    output += `<div class="info">📁 ファイル数: ${result.data.totalFiles}</div>`;
+                    output += `<div class="info">📄 総項目数: ${result.data.totalItems}</div>`;
+                    
+                    resultDiv.innerHTML = output;
+                } else {
+                    const errorData = await response.json();
+                    resultDiv.innerHTML = `<div class="error">❌ プレイリスト作成失敗: ${errorData.message}</div>`;
+                }
+
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ プレイリスト作成エラー: ${error.message}</div>`;
+            }
+        }
+
+        // 自動修復
+        async function autoFixPlaylist() {
+            const resultDiv = document.getElementById('autoFixResult');
+            resultDiv.innerHTML = '<div class="info">自動修復中...</div>';
+
+            let results = [];
+
+            try {
+                // 1. ファイル検出
+                const filesResponse = await fetch('php/get_files.php');
+                if (!filesResponse.ok) {
+                    throw new Error('ファイル検出APIが利用できません');
+                }
+
+                const filesData = await filesResponse.json();
+                const files = filesData.files || [];
+
+                if (files.length === 0) {
+                    throw new Error('data/contents/ 内にJSONファイルが見つかりません');
+                }
+
+                results.push(`✅ ${files.length}個のファイルを検出`);
+
+                // 2. プレイリスト作成
+                const sortedFiles = files.sort((a, b) => a.filename.localeCompare(b.filename));
+                const playlistString = sortedFiles.map((_, index) => String.fromCharCode(65 + index)).join(', ');
+
+                const playlistResponse = await fetch('php/save_playlist.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ playlistString })
+                });
+
+                if (playlistResponse.ok) {
+                    results.push(`✅ プレイリスト "${playlistString}" を作成`);
+                } else {
+                    throw new Error('プレイリスト作成に失敗');
+                }
+
+                // 3. 設定確認・修正
+                const settingsResponse = await fetch('php/save_settings.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        interval: 20,
+                        duration: 8,
+                        showTips: true
+                    })
+                });
+
+                if (settingsResponse.ok) {
+                    results.push(`✅ 設定を修正（showTips: true）`);
+                } else {
+                    results.push(`⚠️ 設定修正に失敗`);
+                }
+
+                let output = '<div class="success">🎉 自動修復完了</div>';
+                results.forEach(result => {
+                    output += `<div class="info">${result}</div>`;
+                });
+                output += '<div class="warning">🔄 待合室画面をリロードして確認してください</div>';
+
+                resultDiv.innerHTML = output;
+
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ 自動修復失敗: ${error.message}</div>`;
+            }
+        }
+
+        // デバッグ情報更新
+        function updateDebugInfo() {
+            const debugInfo = document.getElementById('debugInfo');
+            const info = {
+                '利用可能ファイル数': availableFiles.length,
+                'ショートカットマップ': shortcutMap,
+                '現在のURL': window.location.href,
+                'ユーザーエージェント': navigator.userAgent
+            };
+            debugInfo.textContent = JSON.stringify(info, null, 2);
+        }
+
+        // 定期的にデバッグ情報を更新
+        setInterval(updateDebugInfo, 2000);
+        updateDebugInfo();
+    </script>
+</body>
+</html>

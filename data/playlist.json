@@ -14,9 +14,19 @@
             "filename": "mental-tips-morning.json",
             "displayName": "朝と日中の活動",
             "itemCount": 20
+        },
+        {
+            "filename": "mental-tips-rest.json",
+            "displayName": "睡眠と休息",
+            "itemCount": 20
+        },
+        {
+            "filename": "mental-tips-wellness.json",
+            "displayName": "食事と生活環境",
+            "itemCount": 20
         }
     ],
-    "playlistString": "A, B, C",
+    "playlistString": "A, B, C, D, E",
     "shortcutMap": {
         "A": "mental-tips-activity.json",
         "B": "mental-tips-mindset.json",
@@ -24,14 +34,14 @@
         "D": "mental-tips-rest.json",
         "E": "mental-tips-wellness.json"
     },
-    "totalFiles": 3,
-    "totalItems": 60,
+    "totalFiles": 5,
+    "totalItems": 100,
     "currentPlaylistIndex": 0,
     "currentFileIndex": 0,
-    "lastUpdated": "2025-06-23 12:08:19",
+    "lastUpdated": "2025-06-23 17:54:13",
     "updatedBy": {
         "ip": "118.6.2.215",
         "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36",
-        "timestamp": "2025-06-23 12:08:19"
+        "timestamp": "2025-06-23 17:54:13"
     }
 }
