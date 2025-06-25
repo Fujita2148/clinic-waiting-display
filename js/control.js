@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────────
 // 待合室システム コントロール画面JavaScript
-// プレイリスト管理機能追加版
+// 3カード構成版（システム状態削除・機能統合）
 // ─────────────────────────────────────────────────
 
 let isInitialized = false;
@@ -15,9 +15,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupEventListeners();
     setupMessagePreview();
     setupPlaylistPreview();
+    
+    // 数字表示UIの初期化
+    initializeNumberDisplays();
+    
     isInitialized = true;
-    updateSystemStatus('システム準備完了');
-    log('info', 'Control panel initialized with playlist support');
+    log('info', 'Control panel initialized with simplified 3-card layout');
+    showToast('コントロールパネルを初期化しました');
   } catch (error) {
     log('error', 'Control panel initialization failed:', error);
     showToast('システムの初期化に失敗しました', 'error');
@@ -36,7 +40,6 @@ async function loadAllData() {
     loadStatus(),
     loadMessage(),
     loadSettings(),
-    loadSystemInfo(),
     loadPlaylist(),
     loadAvailableFiles()
   ]);
@@ -50,7 +53,7 @@ async function loadAvailableFiles() {
     const response = await fetchJSON('php/get_files.php');
     availableFiles = response.files || [];
     
-    // ファイル一覧を表示
+    // ファイル一覧を表示（availableFiles要素が存在する場合のみ）
     const availableFilesElement = document.getElementById('availableFiles');
     if (availableFilesElement && availableFiles.length > 0) {
       const fileList = availableFiles.map((file, index) => {
@@ -58,9 +61,17 @@ async function loadAvailableFiles() {
         return `<strong>${letter}</strong>: ${file.displayName} (${file.contentCount}項目)`;
       }).join(' | ');
       availableFilesElement.innerHTML = fileList;
+    } else if (availableFilesElement) {
+      availableFilesElement.innerHTML = 'ファイルが見つかりません';
     }
   } catch (error) {
     log('warn', 'Failed to load available files:', error);
+    
+    // エラー時の表示更新
+    const availableFilesElement = document.getElementById('availableFiles');
+    if (availableFilesElement) {
+      availableFilesElement.innerHTML = 'ファイル読み込みエラー';
+    }
   }
 }
 
@@ -75,9 +86,6 @@ async function loadPlaylist() {
     if (currentPlaylist && currentPlaylist.hasPlaylist) {
       document.getElementById('playlistString').value = currentPlaylist.playlistString || '';
       updatePlaylistPreview();
-      updatePlaylistStatus();
-    } else {
-      document.getElementById('playlistStatus').textContent = '未設定';
     }
   } catch (error) {
     log('warn', 'Failed to load playlist:', error);
@@ -85,7 +93,7 @@ async function loadPlaylist() {
 }
 
 /**
- * 診察順の読み込み
+ * 診察順の読み込み（数字表示UI対応版）
  */
 async function loadStatus() {
   try {
@@ -98,6 +106,9 @@ async function loadStatus() {
     document.getElementById('room2Label').value = status.room2?.label || '第2診察室';
     document.getElementById('room2Number').value = status.room2?.number || 0;
     document.getElementById('room2Visible').checked = status.room2?.visible || false;
+    
+    // 新しい数字表示UIを更新
+    initializeNumberDisplays();
     
   } catch (error) {
     log('warn', 'Failed to load status:', error);
@@ -125,13 +136,12 @@ async function loadMessage() {
 }
 
 /**
- * 設定の読み込み（新タイミング設定対応）
+ * 設定の読み込み
  */
 async function loadSettings() {
   try {
     const settings = await fetchJSON('data/settings.json');
     
-    // waitTime/displayTimeに名称変更
     document.getElementById('waitTime').value = settings.interval || 20;
     document.getElementById('displayTime').value = settings.duration || 8;
     document.getElementById('showTips').checked = settings.showTips !== false;
@@ -144,26 +154,77 @@ async function loadSettings() {
   }
 }
 
+// ─────────────────────────────────────────────────
+// 診察順数字操作関数
+// ─────────────────────────────────────────────────
+
 /**
- * システム情報の読み込み
+ * 診察順番号を変更
+ * @param {string} room - room1 または room2
+ * @param {number} delta - 変更量（+1 または -1）
  */
-async function loadSystemInfo() {
-  try {
-    const response = await fetchJSON('php/get_files.php');
-    
-    document.getElementById('fileCount').textContent = response.totalFiles || 0;
-    document.getElementById('lastUpdate').textContent = response.timestamp || '-';
-    
-    const details = response.files?.map(file => 
-      `${file.displayName} (${file.contentCount}項目)`
-    ).join(', ') || 'ファイルなし';
-    
-    document.getElementById('systemDetails').textContent = details;
-    
-  } catch (error) {
-    log('warn', 'Failed to load system info:', error);
-    document.getElementById('systemDetails').textContent = 'システム情報の取得に失敗しました';
+function changeNumber(room, delta) {
+  const displayElement = document.getElementById(room + 'Display');
+  const hiddenInput = document.getElementById(room + 'Number');
+  
+  if (!displayElement || !hiddenInput) {
+    console.warn(`Elements not found for room: ${room}`);
+    return;
   }
+  
+  // 現在の値を取得
+  let currentValue = parseInt(hiddenInput.value) || 0;
+  
+  // 新しい値を計算（0-999の範囲）
+  let newValue = currentValue + delta;
+  newValue = Math.max(0, Math.min(999, newValue));
+  
+  // 表示と隠しinputを更新
+  updateNumberDisplay(displayElement, newValue);
+  hiddenInput.value = newValue;
+  
+  // 自動チェックボックス更新（0より大きい場合は表示ONに）
+  const visibleCheckbox = document.getElementById(room + 'Visible');
+  if (visibleCheckbox && newValue > 0) {
+    visibleCheckbox.checked = true;
+  }
+  
+  log('info', `Room ${room} number changed to: ${newValue}`);
+}
+
+/**
+ * 数字表示を更新
+ * @param {HTMLElement} displayElement - 表示要素
+ * @param {number} value - 表示する値
+ */
+function updateNumberDisplay(displayElement, value) {
+  displayElement.textContent = value;
+  displayElement.setAttribute('data-value', value);
+  
+  // 0の場合と1以上の場合でスタイルを変更
+  if (value === 0) {
+    displayElement.style.color = '#95a5a6';
+    displayElement.style.borderColor = '#bdc3c7';
+    displayElement.style.background = 'white';
+  } else {
+    displayElement.style.color = '#e74c3c';
+    displayElement.style.borderColor = '#e74c3c';
+    displayElement.style.background = '#fff5f5';
+  }
+}
+
+/**
+ * 数字表示の初期化
+ */
+function initializeNumberDisplays() {
+  const room1Value = parseInt(document.getElementById('room1Number').value) || 0;
+  const room2Value = parseInt(document.getElementById('room2Number').value) || 0;
+  
+  const room1Display = document.getElementById('room1Display');
+  const room2Display = document.getElementById('room2Display');
+  
+  if (room1Display) updateNumberDisplay(room1Display, room1Value);
+  if (room2Display) updateNumberDisplay(room2Display, room2Value);
 }
 
 // ─────────────────────────────────────────────────
@@ -275,7 +336,6 @@ async function savePlaylist() {
     if (response.status === 'success') {
       showToast('プレイリストを保存しました');
       await loadPlaylist();
-      updatePlaylistStatus();
     } else {
       throw new Error(response.message || 'プレイリストの保存に失敗しました');
     }
@@ -283,32 +343,6 @@ async function savePlaylist() {
   } catch (error) {
     log('error', 'Failed to save playlist:', error);
     showToast(error.message || 'プレイリストの保存に失敗しました', 'error');
-  }
-}
-
-/**
- * プレイリスト状態の更新
- */
-function updatePlaylistStatus() {
-  if (currentPlaylist && currentPlaylist.hasPlaylist) {
-    const status = `${currentPlaylist.totalFiles}ファイル (${currentPlaylist.totalItems}項目)`;
-    document.getElementById('playlistStatus').textContent = status;
-    
-    // 再生状況の更新
-    const progressElement = document.getElementById('playlistProgressDetails');
-    if (progressElement && currentPlaylist.currentFile) {
-      const progress = `
-        現在: ${currentPlaylist.currentFile.displayName}
-        ${currentPlaylist.currentFile.currentItem ? 
-          `(${currentPlaylist.currentFile.currentItem.index + 1}番目: ${currentPlaylist.currentFile.currentItem.title})` : 
-          ''}
-        <br>進行: ${currentPlaylist.progress}
-      `;
-      progressElement.innerHTML = progress;
-    }
-  } else {
-    document.getElementById('playlistStatus').textContent = '未設定';
-    document.getElementById('playlistProgressDetails').innerHTML = 'プレイリストが設定されていません';
   }
 }
 
@@ -413,7 +447,7 @@ async function saveStatus() {
 }
 
 /**
- * 診察順のリセット
+ * 診察順のリセット（数字表示UI対応版）
  */
 async function resetStatus() {
   if (!confirm('診察順をリセットしますか？')) return;
@@ -422,6 +456,9 @@ async function resetStatus() {
   document.getElementById('room2Number').value = 0;
   document.getElementById('room1Visible').checked = false;
   document.getElementById('room2Visible').checked = false;
+  
+  // 数字表示UIもリセット
+  initializeNumberDisplays();
   
   await saveStatus();
 }
@@ -467,7 +504,7 @@ async function clearMessage() {
 }
 
 /**
- * 設定の保存（新タイミング設定対応）
+ * 設定の保存
  */
 async function saveSettings() {
   try {
@@ -516,13 +553,6 @@ function updateMessageStats() {
   ControlTextHandler.updateTextStats(text, statsElement, 200);
 }
 
-/**
- * システム状態の更新
- */
-function updateSystemStatus(status) {
-  document.getElementById('systemStatus').textContent = status;
-}
-
 // ─────────────────────────────────────────────────
 // データ再読み込み関数
 // ─────────────────────────────────────────────────
@@ -532,13 +562,10 @@ function updateSystemStatus(status) {
  */
 async function refreshPlaylist() {
   try {
-    updateSystemStatus('プレイリストを更新中...');
     await loadPlaylist();
     await loadAvailableFiles();
-    updateSystemStatus('プレイリストを更新しました');
     showToast('プレイリストを再読み込みしました');
   } catch (error) {
-    updateSystemStatus('更新に失敗しました');
     showToast('プレイリストの再読み込みに失敗しました', 'error');
   }
 }
@@ -548,30 +575,10 @@ async function refreshPlaylist() {
  */
 async function refreshStatus() {
   try {
-    updateSystemStatus('診察順を更新中...');
     await loadStatus();
-    updateSystemStatus('診察順を更新しました');
     showToast('診察順を再読み込みしました');
   } catch (error) {
-    updateSystemStatus('更新に失敗しました');
     showToast('診察順の再読み込みに失敗しました', 'error');
-  }
-}
-
-/**
- * システム情報の再読み込み
- */
-async function refreshSystemInfo() {
-  try {
-    updateSystemStatus('システム情報を更新中...');
-    await loadSystemInfo();
-    await loadPlaylist();
-    updatePlaylistStatus();
-    updateSystemStatus('システム情報を更新しました');
-    showToast('システム情報を更新しました');
-  } catch (error) {
-    updateSystemStatus('情報取得に失敗しました');
-    showToast('システム情報の取得に失敗しました', 'error');
   }
 }
 
@@ -596,7 +603,7 @@ function showToast(message, type = 'success') {
 }
 
 // ─────────────────────────────────────────────────
-// 定期更新
+// 定期更新（軽量化）
 // ─────────────────────────────────────────────────
 
 /**
@@ -605,61 +612,9 @@ function showToast(message, type = 'success') {
 setInterval(async () => {
   if (isInitialized) {
     try {
-      await loadSystemInfo();
       await loadPlaylist();
-      updatePlaylistStatus();
     } catch (error) {
       log('warn', 'Background update failed:', error);
     }
   }
 }, 30000); // 30秒間隔
-
-// ─────────────────────────────────────────────────
-// プレイリストUI用のスタイル追加
-// ─────────────────────────────────────────────────
-
-// 動的スタイルの追加
-const style = document.createElement('style');
-style.textContent = `
-  .playlist-preview {
-    margin: 15px 0;
-    padding: 10px;
-    background: #f8f9fa;
-    border-radius: 6px;
-    border: 1px solid #dee2e6;
-  }
-  
-  .playlist-items {
-    margin-top: 8px;
-    font-size: 0.9rem;
-    line-height: 1.6;
-  }
-  
-  .playlist-item-valid {
-    color: #27ae60;
-    font-weight: 500;
-  }
-  
-  .playlist-item-invalid {
-    color: #e74c3c;
-    font-weight: 500;
-  }
-  
-  .quick-settings {
-    margin: 15px 0;
-  }
-  
-  .quick-settings .btn-sm {
-    padding: 5px 10px;
-    font-size: 0.85rem;
-    margin-right: 5px;
-  }
-  
-  .available-files {
-    padding: 10px;
-    background: #f8f9fa;
-    border-radius: 6px;
-    border: 1px solid #dee2e6;
-  }
-`;
-document.head.appendChild(style);

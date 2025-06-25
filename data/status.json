@@ -1,15 +1,15 @@
 {
     "room1": {
         "label": "第1診察室",
-        "number": 3,
+        "number": 2,
         "visible": true
     },
     "room2": {
         "label": "第2診察室",
-        "number": 3,
+        "number": 4,
         "visible": true
     },
-    "lastUpdated": "2025-06-23 15:15:58",
+    "lastUpdated": "2025-06-25 14:33:46",
     "updatedBy": {
         "ip": "118.6.2.215",
         "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"

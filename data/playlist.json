@@ -1,47 +1,71 @@
 {
     "playlist": [
         {
-            "filename": "mental-tips-activity.json",
-            "displayName": "活動とリラックス",
+            "filename": "daycare_slideshow.json",
+            "displayName": "精神科デイケア\n地域で自分らしく過ごすために",
+            "itemCount": 22
+        },
+        {
+            "filename": "kokubunji_walking.json",
+            "displayName": "国分寺駅周辺\n散歩で健康づくりガイド",
+            "itemCount": 16
+        },
+        {
+            "filename": "mental-tips-0morning.json",
+            "displayName": "ﾒﾝﾀﾙﾍﾙｽ100のｺﾂ\n　朝と日中の活動",
             "itemCount": 20
         },
         {
-            "filename": "mental-tips-mindset.json",
-            "displayName": "心の持ち方",
+            "filename": "mental-tips-2activity.json",
+            "displayName": "ﾒﾝﾀﾙﾍﾙｽ100のｺﾂ\n　活動とリラックス",
             "itemCount": 20
         },
         {
-            "filename": "mental-tips-morning.json",
-            "displayName": "朝と日中の活動",
+            "filename": "mental-tips-4rest.json",
+            "displayName": "ﾒﾝﾀﾙﾍﾙｽ100のｺﾂ\n　睡眠と休息",
             "itemCount": 20
         },
         {
-            "filename": "mental-tips-rest.json",
-            "displayName": "睡眠と休息",
+            "filename": "mental-tips-6wellness.json",
+            "displayName": "ﾒﾝﾀﾙﾍﾙｽ100のｺﾂ\n　食事と生活環境",
             "itemCount": 20
         },
         {
-            "filename": "mental-tips-wellness.json",
-            "displayName": "食事と生活環境",
+            "filename": "mental-tips-8mindset.json",
+            "displayName": "ﾒﾝﾀﾙﾍﾙｽ100のｺﾂ\n　心の持ち方",
+            "itemCount": 20
+        },
+        {
+            "filename": "mental_health_welfare_guide.json",
+            "displayName": "精神科医療・福祉\n知っておきたい20の制度",
+            "itemCount": 20
+        },
+        {
+            "filename": "summer_health_tips.json",
+            "displayName": "夏の熱中症予防\n　心と体を守る30のコツ",
             "itemCount": 20
         }
     ],
-    "playlistString": "A, B, C, D, E",
+    "playlistString": "A, B, C,D,E,F,G,H,I",
     "shortcutMap": {
-        "A": "mental-tips-activity.json",
-        "B": "mental-tips-mindset.json",
-        "C": "mental-tips-morning.json",
-        "D": "mental-tips-rest.json",
-        "E": "mental-tips-wellness.json"
+        "A": "daycare_slideshow.json",
+        "B": "kokubunji_walking.json",
+        "C": "mental-tips-0morning.json",
+        "D": "mental-tips-2activity.json",
+        "E": "mental-tips-4rest.json",
+        "F": "mental-tips-6wellness.json",
+        "G": "mental-tips-8mindset.json",
+        "H": "mental_health_welfare_guide.json",
+        "I": "summer_health_tips.json"
     },
-    "totalFiles": 5,
-    "totalItems": 100,
+    "totalFiles": 9,
+    "totalItems": 178,
     "currentPlaylistIndex": 0,
     "currentFileIndex": 0,
-    "lastUpdated": "2025-06-23 17:54:13",
+    "lastUpdated": "2025-06-25 09:00:06",
     "updatedBy": {
         "ip": "118.6.2.215",
         "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36",
-        "timestamp": "2025-06-23 17:54:13"
+        "timestamp": "2025-06-25 09:00:06"
     }
 }

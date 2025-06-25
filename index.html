@@ -7,45 +7,46 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    <!-- 背景動画（オプション） -->
+    <video id="bg-video" autoplay muted loop style="display: none;">
+        <source src="assets/background.mp4" type="video/mp4">
+    </video>
+    
+    <!-- 背景グラデーション -->
+    <div class="bg-gradient"></div>
+    
     <!-- メイン表示エリア -->
-    <div class="main-container">
+    <div class="display-container">
         <!-- カテゴリタイトル -->
-        <div id="category-title" class="category-title">
-            待合室表示システム
+        <div id="categoryTitle" class="category-title">
+            💡 待合室表示システム
         </div>
         
         <!-- プレイリストコンテンツ表示エリア -->
-        <div id="playlist-content" class="playlist-content">
+        <div id="mainContent" class="main-content">
             <div class="loading">
                 ⏳ システムを起動しています...しばらくお待ちください
             </div>
         </div>
-    </div>
-    
-    <!-- サイドバー -->
-    <div class="sidebar">
-        <!-- 診察順表示 -->
-        <div id="status-cards" class="status-cards">
-            <div class="status-card">
-                <div class="room-label">診察室1</div>
-                <div class="room-number">-</div>
-            </div>
-            <div class="status-card">
-                <div class="room-label">診察室2</div>
-                <div class="room-number">-</div>
-            </div>
-        </div>
         
         <!-- メッセージ表示 -->
-        <div id="message-content" class="message-content">
+        <div id="messageArea" class="message-area">
             <div class="message-text"></div>
         </div>
+        
+        <!-- 診察順表示 -->
+        <div id="statusCard" class="status-card">
+            <h4>🩺 診察順のご案内</h4>
+            <div class="room-info">
+                <div class="room-label">第1診察室</div>
+                <div class="room-number">-</div>
+            </div>
+            <div class="room-info">
+                <div class="room-label">第2診察室</div>
+                <div class="room-number">-</div>
+            </div>
+        </div>
     </div>
-    
-    <!-- 背景動画（オプション） -->
-    <video id="background-video" autoplay muted loop style="display: none;">
-        <source src="assets/background.mp4" type="video/mp4">
-    </video>
     
     <!-- JavaScript読み込み -->
     <script src="js/common.js"></script>

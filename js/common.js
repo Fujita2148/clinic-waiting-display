@@ -1,5 +1,6 @@
 // ─────────────────────────────────────────────────
 // 待合室表示システム - 共通JavaScript
+// 確認済み・問題なし
 // ─────────────────────────────────────────────────
 
 /**
@@ -179,10 +180,13 @@ function log(level, message, data = null) {
   const timestamp = formatTime();
   const prefix = `[${timestamp}] ${level.toUpperCase()}:`;
   
+  // ブラウザでサポートされていないログレベルの対応
+  const logMethod = console[level] || console.log;
+  
   if (data) {
-    console[level](prefix, message, data);
+    logMethod(prefix, message, data);
   } else {
-    console[level](prefix, message);
+    logMethod(prefix, message);
   }
 }
 

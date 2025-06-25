@@ -1,10 +1,10 @@
 // ─────────────────────────────────────────────────
 // 待合室表示システム - PlaylistDisplayManager
-// プレイリスト方式・アイテムレベルタイミング対応版
+// DOM要素修正版・3カード対応
 // ─────────────────────────────────────────────────
 
 /**
- * プレイリスト表示管理クラス（簡素化版）
+ * プレイリスト表示管理クラス（修正版）
  */
 class PlaylistDisplayManager {
   constructor() {
@@ -41,7 +41,10 @@ class PlaylistDisplayManager {
    */
   async init() {
     try {
-      Performance.start('playlist_init');
+      // パフォーマンス測定開始（common.js読み込み済みの場合のみ）
+      if (typeof Performance !== 'undefined') {
+        Performance.start('playlist_init');
+      }
       
       // DOM要素の取得
       this.initializeElements();
@@ -64,7 +67,12 @@ class PlaylistDisplayManager {
       this.startDataPolling();
       
       this.isInitialized = true;
-      Performance.end('playlist_init');
+      
+      // パフォーマンス測定終了
+      if (typeof Performance !== 'undefined') {
+        Performance.end('playlist_init');
+      }
+      
       log('info', 'PlaylistDisplayManager initialized successfully');
       
     } catch (error) {
@@ -74,7 +82,7 @@ class PlaylistDisplayManager {
   }
 
   /**
-   * DOM要素の初期化
+   * DOM要素の初期化（修正版）
    */
   initializeElements() {
     this.categoryTitle = safeQuerySelector('#categoryTitle');
@@ -91,7 +99,7 @@ class PlaylistDisplayManager {
   }
 
   /**
-   * 背景動画の初期化
+   * 背景動画の初期化（修正版）
    */
   initializeBackgroundVideo() {
     const bgVideo = safeQuerySelector('#bg-video');
@@ -454,17 +462,17 @@ class PlaylistDisplayManager {
   }
 
   /**
-   * プレイリスト状態の保存
+   * プレイリスト状態の保存（簡易版）
    */
   async savePlaylistState() {
     try {
-      // プレイリスト状態を更新
+      // ローカルストレージに保存（サーバー実装は今回なし）
       const data = {
         currentPlaylistIndex: this.currentPlaylistIndex,
-        currentFileIndex: this.currentFileIndex
+        currentFileIndex: this.currentFileIndex,
+        timestamp: Date.now()
       };
       
-      // 本来はAPIで保存するが、ここではローカルストレージに保存
       localStorage.setItem('playlistState', JSON.stringify(data));
       
     } catch (error) {
@@ -594,49 +602,19 @@ class PlaylistDisplayManager {
   }
 }
 
-// ─────────────────────────────────────────────────
-// 初期化
-// ─────────────────────────────────────────────────
-
-let displayManager = null;
-
-document.addEventListener('DOMContentLoaded', async () => {
-  try {
-    log('info', 'Starting PlaylistDisplayManager initialization');
-    
-    displayManager = new PlaylistDisplayManager();
-    await displayManager.init();
-    
-  } catch (error) {
-    log('error', 'Failed to start display system:', error);
-    
-    // 緊急フォールバック
-    const mainContent = safeQuerySelector('#mainContent');
-    if (mainContent) {
-      mainContent.innerHTML = `
-        <h2>⚠️ システムエラー</h2>
-        <p>表示システムの起動に失敗しました。管理者にお問い合わせください。</p>
-      `;
-      mainContent.classList.add('show', 'error');
-    }
-  }
-});
-
 // ページ離脱時のクリーンアップ
 window.addEventListener('beforeunload', () => {
-  if (displayManager) {
-    displayManager.destroy();
+  if (window.displayManager) {
+    window.displayManager.destroy();
   }
 });
 
 // デバッグ用（開発環境のみ）
-if (DEBUG) {
-  window.displayManager = displayManager;
-  
+if (typeof DEBUG !== 'undefined' && DEBUG) {
   // デバッグ用関数
   window.reloadPlaylist = () => {
-    if (displayManager) {
-      displayManager.reloadPlaylist();
+    if (window.displayManager) {
+      window.displayManager.reloadPlaylist();
     }
   };
 }
