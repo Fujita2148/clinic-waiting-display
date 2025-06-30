@@ -16,7 +16,7 @@
   --title-size: 4.5rem;      /* 72px - メインタイトル */
   --content-size: 2.8rem;    /* 45px - 本文 */
   --category-size: 3.0rem;   /* 48px - カテゴリ */
-  --status-number: 7.0rem;   /* 112px - 診察順番号（拡大） */
+  --status-number: 11.0rem;   /* 診察順番号（拡大） */
   --status-label: 2.75rem;   /* 44px - 診察順ラベル */
   --message-size: 2.2rem;    /* 35px - メッセージ */
   
@@ -707,7 +707,7 @@ details.card .card-content {
     --title-size: calc(4.5rem * 0.9);
     --content-size: calc(2.8rem * 0.9);
     --category-size: calc(3.0rem * 0.9);
-    --status-number: calc(7.0rem * 0.9);
+    --status-number: calc(11.0rem * 0.9);
     --status-label: calc(2.75rem * 0.9);
   }
 }
@@ -717,7 +717,7 @@ details.card .card-content {
     --title-size: calc(4.5rem * 0.8);
     --content-size: calc(2.8rem * 0.8);
     --category-size: calc(3.0rem * 0.8);
-    --status-number: calc(7.0rem * 0.8);
+    --status-number: calc(11.0rem * 0.8);
     --status-label: calc(2.75rem * 0.8);
   }
 }
@@ -747,7 +747,7 @@ details.card .card-content {
   :root {
     --title-size: calc(4.5rem * 0.6);
     --content-size: calc(2.8rem * 0.6);
-    --status-number: calc(7.0rem * 0.6);
+    --status-number: calc(11.0rem * 0.6);
   }
 }
 
