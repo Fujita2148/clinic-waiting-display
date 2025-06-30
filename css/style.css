@@ -16,8 +16,8 @@
   --title-size: 4.5rem;      /* 72px - メインタイトル */
   --content-size: 2.8rem;    /* 45px - 本文 */
   --category-size: 3.0rem;   /* 48px - カテゴリ */
-  --status-number: 6.0rem;   /* 96px - 診察順番号（超特大） */
-  --status-label: 2.5rem;    /* 40px - 診察順ラベル */
+  --status-number: 7.0rem;   /* 112px - 診察順番号（拡大） */
+  --status-label: 2.75rem;   /* 44px - 診察順ラベル */
   --message-size: 2.2rem;    /* 35px - メッセージ */
   
   /* カラーパレット（高コントラスト） */
@@ -93,7 +93,7 @@ html, body {
     "content content content status"
     "message message . status";
   /* 改善: より柔軟なグリッド設定 */
-  grid-template-columns: minmax(300px, 1fr) 1fr 1fr 400px;
+  grid-template-columns: minmax(300px, 1fr) 1fr 1fr 460px;
   grid-template-rows: 120px 1fr 1fr 150px;
   gap: 20px;
   padding: 30px;
@@ -149,7 +149,7 @@ html, body {
   text-align: center;
   background: var(--card-bg);
   border-radius: 20px;
-  padding: 50px;
+  padding: 20px;
   backdrop-filter: blur(8px);
   box-shadow: var(--shadow-strong);
   opacity: 0;
@@ -257,6 +257,11 @@ html, body {
   background: rgba(0, 123, 255, 0.1);
   border-radius: 12px;
   border-left: 5px solid #007bff;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .status-card .room-label {
@@ -702,8 +707,8 @@ details.card .card-content {
     --title-size: calc(4.5rem * 0.9);
     --content-size: calc(2.8rem * 0.9);
     --category-size: calc(3.0rem * 0.9);
-    --status-number: calc(6.0rem * 0.9);
-    --status-label: calc(2.5rem * 0.9);
+    --status-number: calc(7.0rem * 0.9);
+    --status-label: calc(2.75rem * 0.9);
   }
 }
 
@@ -712,14 +717,14 @@ details.card .card-content {
     --title-size: calc(4.5rem * 0.8);
     --content-size: calc(2.8rem * 0.8);
     --category-size: calc(3.0rem * 0.8);
-    --status-number: calc(6.0rem * 0.8);
-    --status-label: calc(2.5rem * 0.8);
+    --status-number: calc(7.0rem * 0.8);
+    --status-label: calc(2.75rem * 0.8);
   }
 }
 
 @media (max-width: 1200px) {
   .display-container {
-    grid-template-columns: 1fr 350px;
+    grid-template-columns: 1fr 400px;
     grid-template-areas: 
       "category status"
       "content status"
@@ -742,7 +747,7 @@ details.card .card-content {
   :root {
     --title-size: calc(4.5rem * 0.6);
     --content-size: calc(2.8rem * 0.6);
-    --status-number: calc(6.0rem * 0.6);
+    --status-number: calc(7.0rem * 0.6);
   }
 }
 
