@@ -78,9 +78,12 @@ try {
     ];
     
     echo json_encode($response, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-    
+
     // 操作ログを記録
     logStatusUpdate($statusData);
+
+    // 🔥 この行を追加
+    updateLabelHistory($statusData);
     
 } catch (Exception $e) {
     // エラーレスポンス
@@ -189,6 +192,71 @@ function logStatusUpdate($statusData) {
     $logJson = json_encode($logEntries, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
     if ($logJson !== false) {
         file_put_contents($logFile, $logJson, LOCK_EX);
+    }
+}
+
+/**
+ * 🔥 新機能：ラベル履歴の自動更新
+ * @param array $statusData 診察順データ
+ */
+function updateLabelHistory($statusData) {
+    try {
+        $historyFile = __DIR__ . '/../data/label_history.json';
+        $currentHistory = [];
+
+        // 既存履歴の読み込み
+        if (file_exists($historyFile)) {
+            $historyContent = file_get_contents($historyFile);
+            if ($historyContent !== false) {
+                $historyData = json_decode($historyContent, true);
+                if ($historyData && isset($historyData['history'])) {
+                    $currentHistory = $historyData['history'];
+                }
+            }
+        }
+
+        // 新しいラベルを収集
+        $newLabels = [];
+        if (isset($statusData['room1']['label'])) {
+            $label = trim($statusData['room1']['label']);
+            if (!empty($label) && $label !== '第1診察室') {
+                $newLabels[] = $label;
+            }
+        }
+        if (isset($statusData['room2']['label'])) {
+            $label = trim($statusData['room2']['label']);
+            if (!empty($label) && $label !== '第2診察室') {
+                $newLabels[] = $label;
+            }
+        }
+
+        // 履歴を更新
+        foreach ($newLabels as $newLabel) {
+            // 重複を削除
+            $currentHistory = array_filter($currentHistory, function($item) use ($newLabel) {
+                return $item !== $newLabel;
+            });
+            // 先頭に追加
+            array_unshift($currentHistory, $newLabel);
+        }
+
+        // 10件に制限
+        $currentHistory = array_slice($currentHistory, 0, 10);
+
+        // 履歴を保存
+        $historyData = [
+            'history' => array_values($currentHistory),
+            'lastUpdated' => date('Y-m-d H:i:s'),
+            'count' => count($currentHistory)
+        ];
+
+        $jsonContent = json_encode($historyData, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+        if ($jsonContent !== false) {
+            file_put_contents($historyFile, $jsonContent, LOCK_EX);
+        }
+
+    } catch (Exception $e) {
+        error_log('Label history update error: ' . $e->getMessage());
     }
 }
 

@@ -8,6 +8,9 @@ let messagePreviewElement = null;
 let availableFiles = [];
 let currentPlaylist = null;
 
+// 🔥 新規追加
+let labelHistory = [];
+
 // 🔥 新機能: 状態管理
 let savedState = {
   room1: { label: '第1診察室', number: 0, visible: false },
@@ -217,7 +220,8 @@ async function loadAllData() {
     loadMessage(),
     loadSettings(),
     loadPlaylist(),
-    loadAvailableFiles()
+    loadAvailableFiles(),
+    loadLabelHistory()
   ]);
 }
 
@@ -618,6 +622,9 @@ async function saveStatus() {
     const response = await postJSON('php/save_status.php', data);
     
     if (response.status === 'success') {
+      // 🔥 この行を追加
+      await updateLabelHistory(data.room1.label, data.room2.label);
+
       // 成功時の処理
       savedState = { ...data };
       hasChanges = false;
@@ -799,4 +806,85 @@ function showToast(message, type = 'success') {
     toast.classList.remove('show');
     setTimeout(() => toast.remove(), 300);
   }, 3000);
+}
+
+/**
+ * 🔥 新機能：ラベル履歴の読み込み
+ */
+async function loadLabelHistory() {
+  try {
+    const response = await fetchJSON('data/label_history.json');
+    labelHistory = response.history || [];
+    updateLabelDatalist();
+    log('info', `Loaded ${labelHistory.length} label history items`);
+  } catch (error) {
+    log('warn', 'Failed to load label history:', error);
+    labelHistory = [];
+  }
+}
+
+/**
+ * 🔥 新機能：datalistの更新
+ */
+function updateLabelDatalist() {
+  const datalist1 = document.getElementById('labelHistory1');
+  const datalist2 = document.getElementById('labelHistory2');
+
+  if (datalist1) {
+    datalist1.innerHTML = '';
+    labelHistory.forEach(label => {
+      const option = document.createElement('option');
+      option.value = label;
+      datalist1.appendChild(option);
+    });
+  }
+
+  if (datalist2) {
+    datalist2.innerHTML = '';
+    labelHistory.forEach(label => {
+      const option = document.createElement('option');
+      option.value = label;
+      datalist2.appendChild(option);
+    });
+  }
+}
+
+/**
+ * 🔥 新機能：ラベル履歴の更新
+ */
+async function updateLabelHistory(label1, label2) {
+  try {
+    const labels = [label1, label2].filter(label =>
+      label &&
+      label.trim() &&
+      label.trim() !== '第1診察室' &&
+      label.trim() !== '第2診察室'
+    );
+
+    if (labels.length === 0) return;
+
+    // 履歴を更新（重複削除・最新を先頭に）
+    labels.forEach(label => {
+      const trimmedLabel = label.trim();
+      labelHistory = labelHistory.filter(item => item !== trimmedLabel);
+      labelHistory.unshift(trimmedLabel);
+    });
+
+    // 10件に制限
+    labelHistory = labelHistory.slice(0, 10);
+
+    // datalistを更新
+    updateLabelDatalist();
+
+    const historyData = {
+      history: labelHistory,
+      lastUpdated: new Date().toISOString()
+    };
+
+    await postJSON('php/save_label_history.php', historyData);
+    log('info', 'Label history updated');
+
+  } catch (error) {
+    log('warn', 'Failed to update label history:', error);
+  }
 }

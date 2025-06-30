@@ -152,7 +152,16 @@
             <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
               <input type="checkbox" id="room1Visible" style="width: auto;" onchange="detectChanges()">
               <span style="margin-right: 10px;">表示</span>
-              <input id="room1Label" type="text" placeholder="ラベル" style="flex: 1;" value="第1診察室" onchange="detectChanges()">
+              <input id="room1Label" 
+                     type="text" 
+                     placeholder="ラベル" 
+                     style="flex: 1;" 
+                     value="第1診察室" 
+                     onchange="detectChanges()"
+                     list="labelHistory1">
+              <datalist id="labelHistory1">
+                <!-- JavaScriptで動的に候補を追加 -->
+              </datalist>
             </div>
             
             <!-- 既存の数字操作UI -->
@@ -172,7 +181,16 @@
             <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
               <input type="checkbox" id="room2Visible" style="width: auto;" onchange="detectChanges()">
               <span style="margin-right: 10px;">表示</span>
-              <input id="room2Label" type="text" placeholder="ラベル" style="flex: 1;" value="第2診察室" onchange="detectChanges()">
+              <input id="room2Label" 
+                     type="text" 
+                     placeholder="ラベル" 
+                     style="flex: 1;" 
+                     value="第2診察室" 
+                     onchange="detectChanges()"
+                     list="labelHistory2">
+              <datalist id="labelHistory2">
+                <!-- JavaScriptで動的に候補を追加 -->
+              </datalist>
             </div>
             
             <!-- 既存の数字操作UI -->
