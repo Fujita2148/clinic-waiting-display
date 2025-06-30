@@ -98,23 +98,82 @@ class PlaylistDisplayManager {
     this.initializeBackgroundVideo();
   }
 
-  /**
-   * 背景動画の初期化（修正版）
-   */
-  initializeBackgroundVideo() {
-    const bgVideo = safeQuerySelector('#bg-video');
-    if (bgVideo) {
-      bgVideo.addEventListener('canplay', () => {
-        bgVideo.style.display = 'block';
-        log('info', 'Background video loaded');
-      });
-      
-      bgVideo.addEventListener('error', () => {
-        bgVideo.style.display = 'none';
-        log('warn', 'Background video failed to load');
-      });
+/**
+ * 背景動画の初期化（z-index問題対応版）
+ */
+initializeBackgroundVideo() {
+  const bgVideo = safeQuerySelector('#bg-video');
+  const bgGradient = safeQuerySelector('.bg-gradient');
+  
+  if (!bgVideo) {
+    console.warn('Background video element not found');
+    // 動画がない場合はグラデーションにフォールバッククラス追加
+    if (bgGradient) {
+      bgGradient.classList.add('no-video');
     }
+    return;
   }
+
+  console.log('Setting up background video...');
+
+  // 動画読み込み成功時
+  bgVideo.addEventListener('loadeddata', () => {
+    console.log('✅ Video loaded successfully');
+    bgVideo.style.display = 'block';
+    
+    // 🔥 重要: グラデーションを透明化して動画を見えるようにする
+    if (bgGradient) {
+      bgGradient.classList.add('video-loaded');
+    }
+  });
+
+  bgVideo.addEventListener('canplay', () => {
+    console.log('✅ Video can play');
+    bgVideo.style.display = 'block';
+    
+    if (bgGradient) {
+      bgGradient.classList.add('video-loaded');
+    }
+  });
+
+  // 動画読み込み失敗時
+  bgVideo.addEventListener('error', (e) => {
+    console.warn('❌ Video loading failed:', e);
+    bgVideo.style.display = 'none';
+    
+    // フォールバック: グラデーション背景を復活
+    if (bgGradient) {
+      bgGradient.classList.remove('video-loaded');
+      bgGradient.classList.add('no-video');
+    }
+  });
+
+  // タイムアウト後のチェック
+  setTimeout(() => {
+    if (bgVideo.readyState >= 3) { // HAVE_FUTURE_DATA
+      console.log('✅ Video ready (timeout check)');
+      bgVideo.style.display = 'block';
+      
+      if (bgGradient) {
+        bgGradient.classList.add('video-loaded');
+      }
+    } else {
+      console.warn('⚠️ Video not ready after 5s, using fallback');
+      bgVideo.style.display = 'none';
+      
+      if (bgGradient) {
+        bgGradient.classList.add('no-video');
+      }
+    }
+  }, 5000);
+
+  // 明示的に動画読み込み開始
+  try {
+    bgVideo.load();
+  } catch (error) {
+    console.warn('Video load() failed:', error);
+  }
+}
 
   /**
    * 全データの読み込み

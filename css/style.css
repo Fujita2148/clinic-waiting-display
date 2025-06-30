@@ -66,6 +66,17 @@ html, body {
     radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
     var(--bg-primary);
   z-index: -1;
+  transition: opacity 1s ease;
+}
+
+/* 🔥 動画読み込み時はグラデーションを透明化 */
+.bg-gradient.video-loaded {
+  opacity: 0;
+}
+
+/* 🔥 動画がない場合の通常表示 */
+.bg-gradient.no-video {
+  opacity: 1;
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
