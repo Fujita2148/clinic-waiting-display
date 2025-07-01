@@ -11,8 +11,23 @@ let currentPlaylist = null;
 // 🔥 新規追加
 let labelHistory = [];
 
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 🔥 ステータスメッセージ機能
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+const STATUS_MESSAGE_PRESETS = {
+  'part1_wait': '第１部診察開始までお待ちください',
+  'part2_wait': '第２部診察開始までお待ちください',
+  'part3_wait': '第３部診察開始までお待ちください',
+  'closed': '本日の診療受付は終了いたしました',
+  'holiday': '本日休診',
+  'preparation': '診療準備中です'
+};
+
 // 🔥 新機能: 状態管理
 let savedState = {
+  mode: 'rooms',
+  statusMessage: { text: '', visible: false, preset: null },
   room1: { label: '第1診察室', number: 0, visible: false },
   room2: { label: '第2診察室', number: 0, visible: false }
 };
@@ -52,19 +67,38 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function refreshPreview() {
   const previewContent = document.getElementById('previewContent');
   if (!previewContent) return;
-  
-  const r1 = savedState.room1 || {};
-  const r2 = savedState.room2 || {};
-  
+
+  const mode = getSelectedMode();
+
+  switch (mode) {
+    case 'rooms':
+      await refreshRoomPreview();
+      break;
+    case 'message':
+      await refreshMessagePreview();
+      break;
+    case 'hidden':
+      previewContent.innerHTML = '<div class="preview-empty">診察順エリアは非表示です</div>';
+      break;
+  }
+}
+
+async function refreshRoomPreview() {
+  const previewContent = document.getElementById('previewContent');
+  const currentState = getCurrentFormState();
+
+  const r1 = currentState.room1;
+  const r2 = currentState.room2;
+
   const hasVisibleRoom = (r1.visible && r1.number > 0) || (r2.visible && r2.number > 0);
-  
+
   if (!hasVisibleRoom) {
     previewContent.innerHTML = '<div class="preview-empty">診察順が設定されていません</div>';
     return;
   }
-  
+
   let roomsHtml = '';
-  
+
   if (r1.visible && r1.number > 0) {
     roomsHtml += `
       <div class="preview-room">
@@ -73,7 +107,7 @@ async function refreshPreview() {
       </div>
     `;
   }
-  
+
   if (r2.visible && r2.number > 0) {
     roomsHtml += `
       <div class="preview-room">
@@ -82,9 +116,122 @@ async function refreshPreview() {
       </div>
     `;
   }
-  
+
   previewContent.innerHTML = roomsHtml;
-  log('info', 'Preview updated');
+}
+
+async function refreshMessagePreview() {
+  const previewContent = document.getElementById('previewContent');
+  const messageText = document.getElementById('statusMessageText').value;
+
+  if (!messageText.trim()) {
+    previewContent.innerHTML = '<div class="preview-empty">メッセージが入力されていません</div>';
+    return;
+  }
+
+  const layout = calculatePreviewMessageLayout(messageText);
+
+  if (layout.lineCount === 1) {
+    previewContent.innerHTML = `
+      <div class="preview-status-message">
+        <div class="preview-message-single" style="font-size: ${layout.previewFontSize}px;">
+          ${escapeHtml(layout.lines[0])}
+        </div>
+      </div>`;
+  } else {
+    previewContent.innerHTML = `
+      <div class="preview-status-message">
+        <div class="preview-message-container">
+          ${layout.lines.map(line => `
+            <div class="preview-message-line" style="font-size: ${layout.previewFontSize}px;">
+              ${escapeHtml(line)}
+            </div>`).join('')}
+        </div>
+      </div>`;
+  }
+}
+
+function calculatePreviewMessageLayout(text) {
+  const lines = splitVerticalMessage(text);
+  const maxCharsPerLine = Math.max(...lines.map(l => l.length));
+  const lineCount = lines.length;
+
+  const previewHeight = 180;
+  const previewWidth = 300;
+
+  let fontSize;
+
+  if (lineCount === 1) {
+    if (maxCharsPerLine <= 4) {
+      fontSize = Math.min(previewHeight / maxCharsPerLine * 0.8, 60);
+    } else if (maxCharsPerLine <= 8) {
+      fontSize = Math.min(previewHeight / maxCharsPerLine * 0.7, 45);
+    } else {
+      fontSize = Math.min(previewHeight / maxCharsPerLine * 0.6, 35);
+    }
+  } else if (lineCount === 2) {
+    fontSize = Math.min(
+      previewHeight / maxCharsPerLine * 0.55,
+      previewWidth / 2.5
+    );
+  } else {
+    fontSize = Math.min(
+      previewHeight / maxCharsPerLine * 0.4,
+      previewWidth / 3.2
+    );
+  }
+
+  fontSize = Math.max(12, Math.min(fontSize, 60));
+
+  return {
+    lines,
+    lineCount,
+    maxCharsPerLine,
+    previewFontSize: Math.round(fontSize)
+  };
+}
+
+function splitVerticalMessage(text) {
+  const cleanText = text.trim();
+
+  if (cleanText.includes('\n')) {
+    return cleanText.split('\n').filter(line => line.trim());
+  }
+
+  if (cleanText.length <= 10) {
+    return [cleanText];
+  }
+
+  if (cleanText.length <= 20) {
+    return [cleanText];
+  }
+
+  const splitPoint = findNaturalBreakPoint(cleanText);
+  const line1 = cleanText.substring(0, splitPoint).trim();
+  const line2 = cleanText.substring(splitPoint).trim();
+
+  return [line1, line2].filter(line => line.length > 0);
+}
+
+function findNaturalBreakPoint(text) {
+  const mid = Math.floor(text.length / 2);
+  const naturalBreaks = [
+    { pattern: 'まで', offset: 2 },
+    { pattern: 'から', offset: 2 },
+    { pattern: 'です', offset: 2 },
+    { pattern: 'ます', offset: 2 },
+    { pattern: 'した', offset: 2 },
+    { pattern: 'ください', offset: 4 }
+  ];
+
+  for (const nb of naturalBreaks) {
+    const idx = text.indexOf(nb.pattern);
+    if (idx > 0 && idx <= text.length - nb.offset && Math.abs(idx + nb.offset - mid) <= 5) {
+      return idx + nb.offset;
+    }
+  }
+
+  return mid;
 }
 
 /**
@@ -105,18 +252,32 @@ function escapeHtml(text) {
  * 現在のフォーム状態を取得
  */
 function getCurrentFormState() {
-  return {
-    room1: {
-      label: document.getElementById('room1Label')?.value || '第1診察室',
-      number: parseInt(document.getElementById('room1Number')?.value) || 0,
-      visible: document.getElementById('room1Visible')?.checked || false
-    },
-    room2: {
-      label: document.getElementById('room2Label')?.value || '第2診察室',
-      number: parseInt(document.getElementById('room2Number')?.value) || 0,
-      visible: document.getElementById('room2Visible')?.checked || false
-    }
+  const mode = getSelectedMode();
+  const state = {
+    mode: mode
   };
+
+  if (mode === 'message') {
+    state.statusMessage = {
+      text: document.getElementById('statusMessageText').value.trim(),
+      visible: true,
+      preset: null
+    };
+  }
+
+  state.room1 = {
+    label: document.getElementById('room1Label')?.value || '第1診察室',
+    number: parseInt(document.getElementById('room1Number')?.value) || 0,
+    visible: document.getElementById('room1Visible')?.checked || false
+  };
+
+  state.room2 = {
+    label: document.getElementById('room2Label')?.value || '第2診察室',
+    number: parseInt(document.getElementById('room2Number')?.value) || 0,
+    visible: document.getElementById('room2Visible')?.checked || false
+  };
+
+  return state;
 }
 
 /**
@@ -278,25 +439,35 @@ async function loadPlaylist() {
 async function loadStatus() {
   try {
     const status = await fetchJSON('data/status.json');
-    
-    // savedStateを更新
+
     savedState = {
+      mode: status.mode || 'rooms',
       room1: status.room1 || { label: '第1診察室', number: 0, visible: false },
-      room2: status.room2 || { label: '第2診察室', number: 0, visible: false }
+      room2: status.room2 || { label: '第2診察室', number: 0, visible: false },
+      statusMessage: status.statusMessage || { text: '', visible: false, preset: null }
     };
-    
-    // フォームに反映
+
+    const modeRadio = document.querySelector(`input[name="displayMode"][value="${savedState.mode}"]`);
+    if (modeRadio) modeRadio.checked = true;
+
+    if (savedState.statusMessage) {
+      document.getElementById('statusMessageText').value = savedState.statusMessage.text || '';
+      updateStatusMessageCounter();
+    }
+
+    toggleStatusMessageArea(savedState.mode === 'message');
+    toggleRoomSettingsArea(savedState.mode === 'rooms');
+
     document.getElementById('room1Label').value = savedState.room1.label;
     document.getElementById('room1Number').value = savedState.room1.number;
     document.getElementById('room1Visible').checked = savedState.room1.visible;
-    
+
     document.getElementById('room2Label').value = savedState.room2.label;
     document.getElementById('room2Number').value = savedState.room2.number;
     document.getElementById('room2Visible').checked = savedState.room2.visible;
-    
-    // 新しい数字表示UIを更新
+
     initializeNumberDisplays();
-    
+
   } catch (error) {
     log('warn', 'Failed to load status:', error);
   }
@@ -554,6 +725,9 @@ function setupEventListeners() {
   
   // フォームのリアルタイム検証
   setupFormValidation();
+
+  // ステータスメッセージ関連
+  setupStatusMessageListeners();
   
   // 🔥 新機能: ページ離脱時の未保存チェック
   window.addEventListener('beforeunload', (e) => {
@@ -598,6 +772,69 @@ function setupFormValidation() {
       displayTime.style.borderColor = '#ddd';
     }
   });
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ステータスメッセージ関連関数
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+function setupStatusMessageListeners() {
+  document.querySelectorAll('input[name="displayMode"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      const mode = getSelectedMode();
+      toggleStatusMessageArea(mode === 'message');
+      toggleRoomSettingsArea(mode === 'rooms');
+      detectChanges();
+      refreshPreview();
+    });
+  });
+
+  document.querySelectorAll('.preset-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const preset = btn.dataset.preset;
+      if (STATUS_MESSAGE_PRESETS[preset]) {
+        document.getElementById('statusMessageText').value = STATUS_MESSAGE_PRESETS[preset];
+        updateStatusMessageCounter();
+        detectChanges();
+        refreshPreview();
+      }
+    });
+  });
+
+  document.getElementById('statusMessageText').addEventListener('input', () => {
+    updateStatusMessageCounter();
+    detectChanges();
+    refreshPreview();
+  });
+}
+
+function getSelectedMode() {
+  const checkedRadio = document.querySelector('input[name="displayMode"]:checked');
+  return checkedRadio ? checkedRadio.value : 'rooms';
+}
+
+function toggleStatusMessageArea(show) {
+  const area = document.getElementById('statusMessageArea');
+  if (area) area.style.display = show ? 'block' : 'none';
+}
+
+function toggleRoomSettingsArea(show) {
+  const area = document.getElementById('roomSettingsArea');
+  if (area) area.style.display = show ? 'block' : 'none';
+}
+
+function updateStatusMessageCounter() {
+  const textarea = document.getElementById('statusMessageText');
+  const counter = document.getElementById('statusMessageCounter');
+  if (!textarea || !counter) return;
+  const length = textarea.value.length;
+  const maxLength = 30;
+  counter.textContent = `${length}/${maxLength}文字`;
+  if (length > maxLength * 0.8) {
+    counter.classList.add('warning');
+  } else {
+    counter.classList.remove('warning');
+  }
 }
 
 // ─────────────────────────────────────────────────

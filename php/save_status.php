@@ -30,15 +30,10 @@ try {
         throw new Exception('無効なJSONデータです');
     }
     
-    // 必須フィールドの確認
-    if (!isset($data['room1']) || !isset($data['room2'])) {
-        throw new Exception('診察室情報が不完全です');
-    }
-    
     // データの検証とサニタイズ
-    $statusData = [
-        'room1' => validateRoomData($data['room1'], '第1診察室'),
-        'room2' => validateRoomData($data['room2'], '第2診察室'),
+    $validated = validateStatusData($data);
+
+    $statusData = $validated + [
         'lastUpdated' => date('Y-m-d H:i:s'),
         'updatedBy' => getClientInfo()
     ];
@@ -135,6 +130,50 @@ function validateRoomData($roomData, $defaultLabel) {
     // 表示フラグの検証
     $validated['visible'] = isset($roomData['visible']) ? (bool)$roomData['visible'] : false;
     
+    return $validated;
+}
+
+/**
+ * ステータスデータ全体の検証
+ * @param array $data 受信データ
+ * @return array 検証済みデータ
+ */
+function validateStatusData($data) {
+    $validated = [];
+
+    // モードの検証
+    $mode = isset($data['mode']) ? trim($data['mode']) : 'rooms';
+    if (!in_array($mode, ['rooms', 'message', 'hidden'])) {
+        $mode = 'rooms';
+    }
+    $validated['mode'] = $mode;
+
+    // ステータスメッセージ
+    if ($mode === 'message' && isset($data['statusMessage'])) {
+        $msg = $data['statusMessage'];
+        $text = isset($msg['text']) ? mb_substr(strip_tags(trim($msg['text'])), 0, 30) : '';
+        $validated['statusMessage'] = [
+            'text' => $text,
+            'visible' => isset($msg['visible']) ? (bool)$msg['visible'] : true,
+            'preset' => isset($msg['preset']) ? trim($msg['preset']) : null
+        ];
+    } elseif (isset($data['statusMessage'])) {
+        $validated['statusMessage'] = [
+            'text' => '',
+            'visible' => false,
+            'preset' => null
+        ];
+    }
+
+    // 診察室データ
+    if ($mode === 'rooms') {
+        $validated['room1'] = validateRoomData($data['room1'] ?? [], '第1診察室');
+        $validated['room2'] = validateRoomData($data['room2'] ?? [], '第2診察室');
+    } else {
+        if (isset($data['room1'])) $validated['room1'] = validateRoomData($data['room1'], '第1診察室');
+        if (isset($data['room2'])) $validated['room2'] = validateRoomData($data['room2'], '第2診察室');
+    }
+
     return $validated;
 }
 

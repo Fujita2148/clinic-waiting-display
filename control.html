@@ -143,6 +143,51 @@
         ⚠️ 未更新の変更があります - 更新ボタンを押してください
       </div>
 
+      <!-- 🔥 新規追加: 表示モード選択 -->
+      <div class="form-group mode-selection-group">
+        <label>表示モード</label>
+        <div class="mode-selector">
+          <label class="mode-option">
+            <input type="radio" name="displayMode" value="rooms" checked>
+            <span>診察順表示</span>
+          </label>
+          <label class="mode-option">
+            <input type="radio" name="displayMode" value="message">
+            <span>ステータスメッセージ</span>
+          </label>
+          <label class="mode-option">
+            <input type="radio" name="displayMode" value="hidden">
+            <span>非表示</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- 🔥 新規追加: ステータスメッセージ設定エリア -->
+      <div id="statusMessageArea" class="status-message-area" style="display: none;">
+        <div class="form-group">
+          <label>ステータスメッセージ <span class="text-limit">(30文字以内)</span></label>
+          <textarea id="statusMessageText" rows="2" maxlength="30" 
+                    placeholder="ステータスメッセージを入力してください&#10;改行も可能です"></textarea>
+          <div class="text-counter">
+            <span id="statusMessageCounter">0/30文字</span>
+          </div>
+        </div>
+
+        <!-- 定型文ボタン -->
+        <div class="preset-buttons">
+          <label>定型文:</label>
+          <button type="button" class="btn btn-sm preset-btn" data-preset="part1_wait">第１部開始まで</button>
+          <button type="button" class="btn btn-sm preset-btn" data-preset="part2_wait">第２部開始まで</button>
+          <button type="button" class="btn btn-sm preset-btn" data-preset="part3_wait">第３部開始まで</button>
+          <button type="button" class="btn btn-sm preset-btn" data-preset="closed">受付終了</button>
+          <button type="button" class="btn btn-sm preset-btn" data-preset="holiday">本日休診</button>
+          <button type="button" class="btn btn-sm preset-btn" data-preset="preparation">診療準備中</button>
+        </div>
+      </div>
+
+      <!-- 既存の診察順設定エリア -->
+      <div id="roomSettingsArea">
+
       <!-- 🔥 改良: 編集エリア -->
       <div class="room-edit-wrapper">
         <!-- 第1診察室 -->
@@ -206,6 +251,7 @@
 
       <button class="btn btn-success" id="saveButton" onclick="saveStatus()">💾 診察順表示を更新</button>
       <button class="btn btn-danger" onclick="resetStatus()">🔄 リセット</button>
+      </div>
     </div>
   </details>
 

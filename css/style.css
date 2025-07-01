@@ -1023,3 +1023,268 @@ details.card .card-content {
     border: 2px solid #000;
   }
 }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   🔥 ステータスメッセージ機能 専用CSS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/* 表示モード選択 */
+.mode-selection-group {
+  background: #e3f2fd;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border: 2px solid #2196f3;
+}
+
+.mode-selector {
+  display: flex;
+  gap: 15px;
+  margin: 10px 0;
+  flex-wrap: wrap;
+}
+
+.mode-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 10px 15px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  background: white;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  min-width: 120px;
+  justify-content: center;
+}
+
+.mode-option:hover {
+  background: #f8f9fa;
+  border-color: #667eea;
+}
+
+.mode-option input[type="radio"] {
+  width: auto;
+  margin: 0;
+}
+
+.mode-option input:checked + span {
+  font-weight: bold;
+  color: #667eea;
+}
+
+.mode-option:has(input:checked) {
+  background: #667eea;
+  border-color: #667eea;
+  color: white;
+}
+
+.mode-option:has(input:checked) span {
+  color: white;
+}
+
+/* ステータスメッセージエリア */
+.status-message-area {
+  background: #fff8e1;
+  padding: 20px;
+  border-radius: 10px;
+  margin: 15px 0;
+  border: 2px solid #ff9800;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.status-message-area .form-group label {
+  font-weight: bold;
+  color: #e65100;
+}
+
+.text-limit {
+  font-size: 0.8rem;
+  color: #ff5722;
+  font-weight: normal;
+}
+
+.status-message-area textarea {
+  font-size: 1.1rem;
+  line-height: 1.4;
+  resize: vertical;
+  min-height: 60px;
+}
+
+.text-counter {
+  text-align: right;
+  font-size: 0.85rem;
+  color: #666;
+  margin-top: 5px;
+  font-weight: 500;
+}
+
+.text-counter.warning {
+  color: #ff5722;
+  font-weight: bold;
+}
+
+/* 定型文ボタン */
+.preset-buttons {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #ffcc02;
+}
+
+.preset-buttons label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #e65100;
+}
+
+.preset-btn {
+  margin: 3px;
+  padding: 6px 12px;
+  background: #ff9800;
+  color: white;
+  font-size: 0.85rem;
+  border: none;
+  border-radius: 15px;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.preset-btn:hover {
+  background: #f57c00;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.preset-btn:active {
+  transform: translateY(0);
+}
+
+/* プレビューエリアの拡張 */
+.preview-status-message {
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  color: white;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
+.preview-message-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: stretch;
+  gap: 30px;
+  height: 100%;
+}
+
+.preview-message-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-weight: bold;
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  flex: 1;
+}
+
+.preview-message-single {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-weight: bold;
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   🔥 表示画面用 ステータスメッセージ CSS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/* ステータスメッセージモード専用スタイル */
+.status-card.message-mode {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 30px 20px;
+  min-height: 400px;
+}
+
+.vertical-message-container {
+  display: flex;
+  flex-direction: row; /* 縦書きでは行が水平方向 */
+  justify-content: center;
+  align-items: stretch;
+  gap: clamp(20px, 5vw, 60px);
+  width: 100%;
+  height: 100%;
+}
+
+.vertical-message-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-weight: bold;
+  color: #2c3e50;
+  text-align: center;
+  flex: 1;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+}
+
+/* 1行表示用（特大） */
+.vertical-message-single {
+  width: 100%;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-weight: bold;
+  color: #2c3e50;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+}
+
+/* レスポンシブ対応 */
+@media (max-height: 600px) {
+  .status-card.message-mode {
+    padding: 20px 15px;
+    min-height: 300px;
+  }
+
+  .vertical-message-container {
+    gap: 15px;
+  }
+}
+
+@media (max-width: 500px) {
+  .status-card.message-mode {
+    padding: 15px 10px;
+  }
+
+  .vertical-message-container {
+    gap: 10px;
+  }
+}
