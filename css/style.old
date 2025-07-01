@@ -16,8 +16,8 @@
   --title-size: 4.5rem;      /* 72px - メインタイトル */
   --content-size: 2.8rem;    /* 45px - 本文 */
   --category-size: 3.0rem;   /* 48px - カテゴリ */
-  --status-number: 11.0rem;   /* 診察順番号（拡大） */
-  --status-label: 2.75rem;   /* 44px - 診察順ラベル */
+  --status-number: 6.0rem;   /* 96px - 診察順番号（超特大） */
+  --status-label: 2.5rem;    /* 40px - 診察順ラベル */
   --message-size: 2.2rem;    /* 35px - メッセージ */
   
   /* カラーパレット（高コントラスト） */
@@ -93,7 +93,7 @@ html, body {
     "content content content status"
     "message message . status";
   /* 改善: より柔軟なグリッド設定 */
-  grid-template-columns: minmax(300px, 1fr) 1fr 1fr 460px;
+  grid-template-columns: minmax(300px, 1fr) 1fr 1fr 400px;
   grid-template-rows: 120px 1fr 1fr 150px;
   gap: 20px;
   padding: 30px;
@@ -149,7 +149,7 @@ html, body {
   text-align: center;
   background: var(--card-bg);
   border-radius: 20px;
-  padding: 20px;
+  padding: 50px;
   backdrop-filter: blur(8px);
   box-shadow: var(--shadow-strong);
   opacity: 0;
@@ -257,11 +257,6 @@ html, body {
   background: rgba(0, 123, 255, 0.1);
   border-radius: 12px;
   border-left: 5px solid #007bff;
-  aspect-ratio: 1 / 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
 }
 
 .status-card .room-label {
@@ -707,8 +702,8 @@ details.card .card-content {
     --title-size: calc(4.5rem * 0.9);
     --content-size: calc(2.8rem * 0.9);
     --category-size: calc(3.0rem * 0.9);
-    --status-number: calc(11.0rem * 0.9);
-    --status-label: calc(2.75rem * 0.9);
+    --status-number: calc(6.0rem * 0.9);
+    --status-label: calc(2.5rem * 0.9);
   }
 }
 
@@ -717,14 +712,14 @@ details.card .card-content {
     --title-size: calc(4.5rem * 0.8);
     --content-size: calc(2.8rem * 0.8);
     --category-size: calc(3.0rem * 0.8);
-    --status-number: calc(11.0rem * 0.8);
-    --status-label: calc(2.75rem * 0.8);
+    --status-number: calc(6.0rem * 0.8);
+    --status-label: calc(2.5rem * 0.8);
   }
 }
 
 @media (max-width: 1200px) {
   .display-container {
-    grid-template-columns: 1fr 400px;
+    grid-template-columns: 1fr 350px;
     grid-template-areas: 
       "category status"
       "content status"
@@ -747,7 +742,7 @@ details.card .card-content {
   :root {
     --title-size: calc(4.5rem * 0.6);
     --content-size: calc(2.8rem * 0.6);
-    --status-number: calc(11.0rem * 0.6);
+    --status-number: calc(6.0rem * 0.6);
   }
 }
 
@@ -801,7 +796,6 @@ details.card .card-content {
     padding: 10px 15px;
   }
 }
-
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    🔥 要件定義対応 - 新機能用スタイル追加
    既存CSSに影響を与えない新しいクラス名を使用
@@ -922,29 +916,6 @@ details.card .card-content {
   font-size: 1.1rem;
 }
 
-/* 🔥 新規追加: 共通操作ボタンエリア */
-.common-actions {
-  background: #f8f9fa;
-  padding: 20px;
-  border-radius: 10px;
-  margin-top: 20px;
-  border: 2px solid #e9ecef;
-  text-align: center;
-}
-
-.common-actions h4 {
-  margin: 0 0 15px 0;
-  color: #495057;
-  font-size: 1rem;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 15px;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
 /* トーストの改良 */
 .toast {
   position: fixed;
@@ -993,16 +964,6 @@ details.card .card-content {
   
   .preview-room-number {
     font-size: 2rem;
-  }
-  
-  .action-buttons {
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .action-buttons .btn {
-    width: 100%;
-    max-width: 300px;
   }
   
   .toast {
@@ -1055,362 +1016,5 @@ details.card .card-content {
   
   .change-notification {
     border: 2px solid #000;
-  }
-}
-
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   🔥 ステータスメッセージ機能 専用CSS
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-
-/* 表示モード選択 */
-.mode-selection-group {
-  background: #e3f2fd;
-  padding: 15px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  border: 2px solid #2196f3;
-}
-
-.mode-selector {
-  display: flex;
-  gap: 15px;
-  margin: 10px 0;
-  flex-wrap: wrap;
-}
-
-.mode-option {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  padding: 10px 15px;
-  border: 2px solid #e9ecef;
-  border-radius: 8px;
-  background: white;
-  transition: all 0.3s ease;
-  font-weight: 500;
-  min-width: 120px;
-  justify-content: center;
-}
-
-.mode-option:hover {
-  background: #f8f9fa;
-  border-color: #667eea;
-}
-
-.mode-option input[type="radio"] {
-  width: auto;
-  margin: 0;
-}
-
-.mode-option input:checked + span {
-  font-weight: bold;
-  color: #667eea;
-}
-
-.mode-option:has(input:checked) {
-  background: #667eea;
-  border-color: #667eea;
-  color: white;
-}
-
-.mode-option:has(input:checked) span {
-  color: white;
-}
-
-/* ステータスメッセージエリア */
-.status-message-area {
-  background: #fff8e1;
-  padding: 20px;
-  border-radius: 10px;
-  margin: 15px 0;
-  border: 2px solid #ff9800;
-  animation: slideIn 0.3s ease;
-}
-
-@keyframes slideIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.status-message-area .form-group label {
-  font-weight: bold;
-  color: #e65100;
-}
-
-.text-limit {
-  font-size: 0.8rem;
-  color: #ff5722;
-  font-weight: normal;
-}
-
-.status-message-area textarea {
-  font-size: 1.1rem;
-  line-height: 1.4;
-  resize: vertical;
-  min-height: 60px;
-}
-
-.text-counter {
-  text-align: right;
-  font-size: 0.85rem;
-  color: #666;
-  margin-top: 5px;
-  font-weight: 500;
-}
-
-.text-counter.warning {
-  color: #ff5722;
-  font-weight: bold;
-}
-
-/* 定型文ボタン */
-.preset-buttons {
-  margin-top: 15px;
-  padding-top: 15px;
-  border-top: 1px solid #ffcc02;
-}
-
-.preset-buttons label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 600;
-  color: #e65100;
-}
-
-.preset-btn {
-  margin: 3px;
-  padding: 6px 12px;
-  background: #ff9800;
-  color: white;
-  font-size: 0.85rem;
-  border: none;
-  border-radius: 15px;
-  transition: all 0.2s ease;
-  font-weight: 500;
-}
-
-.preset-btn:hover {
-  background: #f57c00;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-.preset-btn:active {
-  transform: translateY(0);
-}
-
-/* プレビューエリアの拡張 */
-.preview-status-message {
-  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-  color: white;
-  padding: 20px;
-  border-radius: 10px;
-  text-align: center;
-  min-height: 200px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-}
-
-.preview-message-container {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: stretch;
-  gap: 30px;
-  height: 100%;
-}
-
-.preview-message-line {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  font-weight: bold;
-  color: white;
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-  flex: 1;
-}
-
-.preview-message-single {
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  font-weight: bold;
-  color: white;
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-}
-
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   🔥 表示画面用 ステータスメッセージ CSS（修正版）
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-
-/* ステータスメッセージモード専用スタイル */
-.status-card.message-mode {
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 30px 20px;
-  min-height: 400px;
-}
-
-/* 基本コンテナスタイル */
-.vertical-message-container {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: stretch;
-  width: 100%;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  padding: 10px;
-  /* デフォルトギャップ */
-  gap: 20px;
-}
-
-/* 🔥 行数別のギャップ調整 */
-.vertical-message-container.lines-1 {
-  gap: 0;
-  padding: 15px;
-}
-
-.vertical-message-container.lines-2 {
-  gap: 15px;
-  padding: 10px;
-}
-
-.vertical-message-container.lines-3 {
-  gap: 10px;
-  padding: 8px;
-}
-
-.vertical-message-container.lines-4,
-.vertical-message-container.lines-5 {
-  gap: 8px;
-  padding: 6px;
-}
-
-/* 基本的な行スタイル */
-.vertical-message-line {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  font-weight: bold;
-  color: #2c3e50;
-  text-align: center;
-  flex: 1;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 6px;
-  padding: 10px 5px;
-  border: 1px solid rgba(0, 123, 255, 0.2);
-  /* 🔥 追加: トランジション効果 */
-  transition: all 0.3s ease;
-}
-
-/* 1行表示用（特大） */
-.vertical-message-single {
-  width: 100%;
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  font-weight: bold;
-  color: #2c3e50;
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 8px;
-  padding: 20px 10px;
-  border: 2px solid rgba(0, 123, 255, 0.3);
-}
-
-/* 🔥 3行以上の場合のフォント調整 */
-.vertical-message-container.lines-3 .vertical-message-line {
-  padding: 8px 4px;
-  font-size: 0.9em !important;
-}
-
-.vertical-message-container.lines-4 .vertical-message-line,
-.vertical-message-container.lines-5 .vertical-message-line {
-  padding: 6px 3px;
-  font-size: 0.8em !important;
-}
-
-/* 🔥 行の順序による微調整 */
-.vertical-message-line.line-1 {
-  border-color: rgba(0, 123, 255, 0.3);
-}
-
-.vertical-message-line.line-2 {
-  border-color: rgba(0, 123, 255, 0.25);
-}
-
-.vertical-message-line.line-3,
-.vertical-message-line.line-4,
-.vertical-message-line.line-5 {
-  border-color: rgba(0, 123, 255, 0.2);
-}
-
-/* レスポンシブ対応 */
-@media (max-height: 600px) {
-  .status-card.message-mode {
-    padding: 20px 15px;
-    min-height: 300px;
-  }
-
-  .vertical-message-container {
-    padding: 8px;
-  }
-  
-  .vertical-message-container.lines-2 {
-    gap: 12px;
-  }
-  
-  .vertical-message-container.lines-3 {
-    gap: 8px;
-  }
-  
-  .vertical-message-line {
-    padding: 6px 3px;
-  }
-}
-
-@media (max-width: 500px) {
-  .status-card.message-mode {
-    padding: 15px 10px;
-  }
-
-  .vertical-message-container {
-    padding: 6px;
-  }
-  
-  .vertical-message-container.lines-2 {
-    gap: 10px;
-  }
-  
-  .vertical-message-container.lines-3,
-  .vertical-message-container.lines-4,
-  .vertical-message-container.lines-5 {
-    gap: 6px;
-  }
-  
-  .vertical-message-line {
-    padding: 5px 2px;
-    font-size: 0.85em !important;
   }
 }

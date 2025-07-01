@@ -524,10 +524,13 @@ initializeBackgroundVideo() {
     this.statusCard.style.display = 'flex';
 
     const messageLayout = this.calculateMessageLayout(statusMessage.text);
+    
+    // 🔥 修正: 行数に応じたクラスを追加
+    const lineCountClass = `lines-${messageLayout.lineCount}`;
 
     if (messageLayout.lineCount === 1) {
       this.statusCard.innerHTML = `
-        <div class="vertical-message-container">
+        <div class="vertical-message-container ${lineCountClass}">
           <div class="vertical-message-single" 
                style="font-size: ${messageLayout.fontSize}px; line-height: ${messageLayout.lineHeight};">
             ${TextUtils.escapeHtml(messageLayout.lines[0])}
@@ -536,9 +539,9 @@ initializeBackgroundVideo() {
       `;
     } else {
       this.statusCard.innerHTML = `
-        <div class="vertical-message-container">
-          ${messageLayout.lines.map(line => `
-            <div class="vertical-message-line" 
+        <div class="vertical-message-container ${lineCountClass}">
+          ${messageLayout.lines.map((line, index) => `
+            <div class="vertical-message-line line-${index + 1}" 
                  style="font-size: ${messageLayout.fontSize}px; line-height: ${messageLayout.lineHeight};">
               ${TextUtils.escapeHtml(line)}
             </div>

@@ -1,23 +1,23 @@
 {
-  "mode": "rooms",
-  "statusMessage": {
-    "text": "",
-    "visible": false,
-    "preset": null
-  },
-  "room1": {
-    "label": "第1診察室　小石",
-    "number": 0,
-    "visible": true
-  },
-  "room2": {
-    "label": "第2診察室   高松",
-    "number": 0,
-    "visible": true
-  },
-  "lastUpdated": "2025-06-30 17:16:19",
-  "updatedBy": {
-    "ip": "118.6.2.215",
-    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
-  }
+    "mode": "message",
+    "statusMessage": {
+        "text": "第１部診察開始まで\nお待ちください",
+        "visible": true,
+        "preset": null
+    },
+    "room1": {
+        "label": "第1診察室　小石",
+        "number": 1,
+        "visible": true
+    },
+    "room2": {
+        "label": "第2診察室   高松",
+        "number": 1,
+        "visible": true
+    },
+    "lastUpdated": "2025-07-01 18:18:31",
+    "updatedBy": {
+        "ip": "118.6.2.215",
+        "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"
+    }
 }

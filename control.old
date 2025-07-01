@@ -106,43 +106,12 @@
       background: #fff8f0;
     }
 
-    /* 🔥 修正: 共通操作ボタンエリア */
-    .common-actions {
-      background: #f8f9fa;
-      padding: 20px;
-      border-radius: 10px;
-      margin-top: 20px;
-      border: 2px solid #e9ecef;
-      text-align: center;
-    }
-
-    .common-actions h4 {
-      margin: 0 0 15px 0;
-      color: #495057;
-      font-size: 1rem;
-    }
-
-    .action-buttons {
-      display: flex;
-      gap: 15px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
     @media (max-width: 768px) {
       .room-edit-wrapper {
         grid-template-columns: 1fr;
       }
       .preview-rooms {
         grid-template-columns: 1fr;
-      }
-      .action-buttons {
-        flex-direction: column;
-        align-items: center;
-      }
-      .action-buttons .btn {
-        width: 100%;
-        max-width: 300px;
       }
     }
   </style>
@@ -174,121 +143,51 @@
         ⚠️ 未更新の変更があります - 更新ボタンを押してください
       </div>
 
-      <!-- 🔥 新規追加: 表示モード選択 -->
-      <div class="form-group mode-selection-group">
-        <label>表示モード</label>
-        <div class="mode-selector">
-          <label class="mode-option">
-            <input type="radio" name="displayMode" value="rooms" checked>
-            <span>診察順表示</span>
-          </label>
-          <label class="mode-option">
-            <input type="radio" name="displayMode" value="message">
-            <span>ステータスメッセージ</span>
-          </label>
-          <label class="mode-option">
-            <input type="radio" name="displayMode" value="hidden">
-            <span>非表示</span>
-          </label>
-        </div>
-      </div>
-
-      <!-- 🔥 新規追加: ステータスメッセージ設定エリア -->
-      <div id="statusMessageArea" class="status-message-area" style="display: none;">
-        <div class="form-group">
-          <label>ステータスメッセージ <span class="text-limit">(30文字以内)</span></label>
-          <textarea id="statusMessageText" rows="2" maxlength="30" 
-                    placeholder="ステータスメッセージを入力してください&#10;改行も可能です"></textarea>
-          <div class="text-counter">
-            <span id="statusMessageCounter">0/30文字</span>
-          </div>
-        </div>
-
-        <!-- 定型文ボタン -->
-        <div class="preset-buttons">
-          <label>定型文:</label>
-          <button type="button" class="btn btn-sm preset-btn" data-preset="part1_wait">第１部開始まで</button>
-          <button type="button" class="btn btn-sm preset-btn" data-preset="part2_wait">第２部開始まで</button>
-          <button type="button" class="btn btn-sm preset-btn" data-preset="part3_wait">第３部開始まで</button>
-          <button type="button" class="btn btn-sm preset-btn" data-preset="closed">受付終了</button>
-          <button type="button" class="btn btn-sm preset-btn" data-preset="holiday">本日休診</button>
-          <button type="button" class="btn btn-sm preset-btn" data-preset="preparation">診療準備中</button>
-        </div>
-      </div>
-
-      <!-- 既存の診察順設定エリア -->
-      <div id="roomSettingsArea">
-        <!-- 🔥 改良: 編集エリア -->
-        <div class="room-edit-wrapper">
-          <!-- 第1診察室 -->
-          <div class="room-edit-item" id="room1Edit">
-            <div class="form-group">
-              <label>第1診察室</label>
-              <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
-                <input type="checkbox" id="room1Visible" style="width: auto;" onchange="detectChanges()">
-                <span style="margin-right: 10px;">表示</span>
-                <input id="room1Label" 
-                       type="text" 
-                       placeholder="ラベル" 
-                       style="flex: 1;" 
-                       value="第1診察室" 
-                       onchange="detectChanges()"
-                       list="labelHistory1">
-                <datalist id="labelHistory1">
-                  <!-- JavaScriptで動的に候補を追加 -->
-                </datalist>
-              </div>
-              
-              <!-- 既存の数字操作UI -->
-              <div class="number-control">
-                <button class="number-btn number-btn-minus" onclick="changeNumber('room1', -1)">－</button>
-                <div class="number-display" id="room1Display">0</div>
-                <button class="number-btn number-btn-plus" onclick="changeNumber('room1', +1)">＋</button>
-              </div>
-              <input id="room1Number" type="hidden" value="0">
+      <!-- 🔥 改良: 編集エリア -->
+      <div class="room-edit-wrapper">
+        <!-- 第1診察室 -->
+        <div class="room-edit-item" id="room1Edit">
+          <div class="form-group">
+            <label>第1診察室</label>
+            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
+              <input type="checkbox" id="room1Visible" style="width: auto;" onchange="detectChanges()">
+              <span style="margin-right: 10px;">表示</span>
+              <input id="room1Label" type="text" placeholder="ラベル" style="flex: 1;" value="第1診察室" onchange="detectChanges()">
             </div>
-          </div>
-          
-          <!-- 第2診察室 -->
-          <div class="room-edit-item" id="room2Edit">
-            <div class="form-group">
-              <label>第2診察室</label>
-              <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
-                <input type="checkbox" id="room2Visible" style="width: auto;" onchange="detectChanges()">
-                <span style="margin-right: 10px;">表示</span>
-                <input id="room2Label" 
-                       type="text" 
-                       placeholder="ラベル" 
-                       style="flex: 1;" 
-                       value="第2診察室" 
-                       onchange="detectChanges()"
-                       list="labelHistory2">
-                <datalist id="labelHistory2">
-                  <!-- JavaScriptで動的に候補を追加 -->
-                </datalist>
-              </div>
-              
-              <!-- 既存の数字操作UI -->
-              <div class="number-control">
-                <button class="number-btn number-btn-minus" onclick="changeNumber('room2', -1)">－</button>
-                <div class="number-display" id="room2Display">0</div>
-                <button class="number-btn number-btn-plus" onclick="changeNumber('room2', +1)">＋</button>
-              </div>
-              <input id="room2Number" type="hidden" value="0">
+            
+            <!-- 既存の数字操作UI -->
+            <div class="number-control">
+              <button class="number-btn number-btn-minus" onclick="changeNumber('room1', -1)">－</button>
+              <div class="number-display" id="room1Display">0</div>
+              <button class="number-btn number-btn-plus" onclick="changeNumber('room1', +1)">＋</button>
             </div>
+            <input id="room1Number" type="hidden" value="0">
+          </div>
+        </div>
+        
+        <!-- 第2診察室 -->
+        <div class="room-edit-item" id="room2Edit">
+          <div class="form-group">
+            <label>第2診察室</label>
+            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
+              <input type="checkbox" id="room2Visible" style="width: auto;" onchange="detectChanges()">
+              <span style="margin-right: 10px;">表示</span>
+              <input id="room2Label" type="text" placeholder="ラベル" style="flex: 1;" value="第2診察室" onchange="detectChanges()">
+            </div>
+            
+            <!-- 既存の数字操作UI -->
+            <div class="number-control">
+              <button class="number-btn number-btn-minus" onclick="changeNumber('room2', -1)">－</button>
+              <div class="number-display" id="room2Display">0</div>
+              <button class="number-btn number-btn-plus" onclick="changeNumber('room2', +1)">＋</button>
+            </div>
+            <input id="room2Number" type="hidden" value="0">
           </div>
         </div>
       </div>
 
-      <!-- 🔥 修正: 共通操作ボタンエリア（モードに関係なく常に表示） -->
-      <div class="common-actions">
-        <h4>⚙️ 操作</h4>
-        <div class="action-buttons">
-          <button class="btn btn-success" id="saveButton" onclick="saveStatus()">💾 設定を更新</button>
-          <button class="btn btn-danger" onclick="resetStatus()">🔄 リセット</button>
-        </div>
-      </div>
-
+      <button class="btn btn-success" id="saveButton" onclick="saveStatus()">💾 診察順表示を更新</button>
+      <button class="btn btn-danger" onclick="resetStatus()">🔄 リセット</button>
     </div>
   </details>
 
