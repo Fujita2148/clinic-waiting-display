@@ -270,6 +270,8 @@ initializeBackgroundVideo() {
       () => fetchJSON('data/status.json'),
       'Failed to load status',
       {
+        mode: 'rooms',
+        statusMessage: { text: '', visible: false, preset: null },
         room1: { label: '第1診察室', number: 0, visible: false },
         room2: { label: '第2診察室', number: 0, visible: false }
       }
@@ -491,17 +493,161 @@ initializeBackgroundVideo() {
    */
   renderStatus() {
     if (!this.statusCard) return;
-    
+
+    const mode = this.status.mode || 'rooms';
+
+    this.statusCard.className = 'status-card';
+
+    switch (mode) {
+      case 'hidden':
+        this.statusCard.style.display = 'none';
+        break;
+      case 'message':
+        this.renderVerticalStatusMessage();
+        break;
+      case 'rooms':
+      default:
+        this.renderRoomStatus();
+        break;
+    }
+  }
+
+  renderVerticalStatusMessage() {
+    const statusMessage = this.status.statusMessage || {};
+
+    if (!statusMessage.visible || !statusMessage.text) {
+      this.statusCard.style.display = 'none';
+      return;
+    }
+
+    this.statusCard.className = 'status-card message-mode';
+    this.statusCard.style.display = 'flex';
+
+    const messageLayout = this.calculateMessageLayout(statusMessage.text);
+
+    if (messageLayout.lineCount === 1) {
+      this.statusCard.innerHTML = `
+        <div class="vertical-message-container">
+          <div class="vertical-message-single" 
+               style="font-size: ${messageLayout.fontSize}px; line-height: ${messageLayout.lineHeight};">
+            ${TextUtils.escapeHtml(messageLayout.lines[0])}
+          </div>
+        </div>
+      `;
+    } else {
+      this.statusCard.innerHTML = `
+        <div class="vertical-message-container">
+          ${messageLayout.lines.map(line => `
+            <div class="vertical-message-line" 
+                 style="font-size: ${messageLayout.fontSize}px; line-height: ${messageLayout.lineHeight};">
+              ${TextUtils.escapeHtml(line)}
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+  }
+
+  calculateMessageLayout(text) {
+    const lines = this.splitVerticalMessage(text);
+    const maxCharsPerLine = Math.max(...lines.map(line => line.length));
+    const lineCount = lines.length;
+
+    const rect = this.statusCard.getBoundingClientRect();
+    const availableHeight = rect.height > 0 ? rect.height - 60 : 400;
+    const availableWidth = rect.width > 0 ? rect.width - 40 : 400;
+
+    let fontSize;
+    let lineHeight;
+
+    if (lineCount === 1) {
+      if (maxCharsPerLine <= 4) {
+        fontSize = Math.min(availableHeight / maxCharsPerLine * 0.9, 200);
+      } else if (maxCharsPerLine <= 8) {
+        fontSize = Math.min(availableHeight / maxCharsPerLine * 0.8, 150);
+      } else {
+        fontSize = Math.min(availableHeight / maxCharsPerLine * 0.7, 120);
+      }
+      lineHeight = 1.0;
+    } else if (lineCount === 2) {
+      fontSize = Math.min(
+        availableHeight / maxCharsPerLine * 0.65,
+        availableWidth / 2.5
+      );
+      lineHeight = 1.1;
+    } else {
+      fontSize = Math.min(
+        availableHeight / maxCharsPerLine * 0.5,
+        availableWidth / 3.2
+      );
+      lineHeight = 1.2;
+    }
+
+    fontSize = Math.max(30, Math.min(fontSize, 200));
+
+    return {
+      fontSize: Math.round(fontSize),
+      lineHeight,
+      lines,
+      lineCount,
+      maxCharsPerLine
+    };
+  }
+
+  splitVerticalMessage(text) {
+    const cleanText = text.trim();
+
+    if (cleanText.includes('\n')) {
+      return cleanText.split('\n').filter(line => line.trim());
+    }
+
+    if (cleanText.length <= 10) {
+      return [cleanText];
+    }
+
+    if (cleanText.length <= 20) {
+      return [cleanText];
+    }
+
+    const splitPoint = this.findNaturalBreakPoint(cleanText);
+    const line1 = cleanText.substring(0, splitPoint).trim();
+    const line2 = cleanText.substring(splitPoint).trim();
+
+    return [line1, line2].filter(line => line.length > 0);
+  }
+
+  findNaturalBreakPoint(text) {
+    const midPoint = Math.floor(text.length / 2);
+    const naturalBreaks = [
+      { pattern: 'まで', offset: 2 },
+      { pattern: 'から', offset: 2 },
+      { pattern: 'です', offset: 2 },
+      { pattern: 'ます', offset: 2 },
+      { pattern: 'した', offset: 2 },
+      { pattern: 'ください', offset: 4 }
+    ];
+
+    for (const nb of naturalBreaks) {
+      const index = text.indexOf(nb.pattern);
+      if (index > 0 && index <= text.length - nb.offset && Math.abs(index + nb.offset - midPoint) <= 5) {
+        return index + nb.offset;
+      }
+    }
+
+    return midPoint;
+  }
+
+  renderRoomStatus() {
     const r1 = this.status.room1 || {};
     const r2 = this.status.room2 || {};
-    
+
     const hasVisibleRoom = (r1.visible && r1.number > 0) || (r2.visible && r2.number > 0);
-    
+
     if (!hasVisibleRoom) {
       this.statusCard.style.display = 'none';
       return;
     }
-    
+
     this.statusCard.style.display = 'block';
     this.statusCard.innerHTML = `
       <h4>🩺 診察順のご案内</h4>
