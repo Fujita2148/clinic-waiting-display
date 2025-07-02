@@ -881,7 +881,7 @@ async function saveStatus() {
     // ボタンを元に戻す
     const saveButton = document.getElementById('saveButton');
     saveButton.disabled = false;
-    saveButton.textContent = '💾 診察順を更新';
+    saveButton.textContent = '💾 設定を更新';
   }
 }
 

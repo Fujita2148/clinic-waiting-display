@@ -1,362 +1,5 @@
 [
     {
-        "timestamp": "2025-06-25 17:48:46",
-        "room1": {
-            "label": "第1診察室",
-            "number": 4,
-            "visible": true
-        },
-        "room2": {
-            "label": "面接室",
-            "number": 4,
-            "visible": false
-        },
-        "client": {
-            "ip": "118.6.2.215",
-            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"
-        }
-    },
-    {
-        "timestamp": "2025-06-25 17:49:01",
-        "room1": {
-            "label": "第1診察室",
-            "number": 4,
-            "visible": true
-        },
-        "room2": {
-            "label": "第2診察室",
-            "number": 4,
-            "visible": false
-        },
-        "client": {
-            "ip": "118.6.2.215",
-            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"
-        }
-    },
-    {
-        "timestamp": "2025-06-25 17:49:08",
-        "room1": {
-            "label": "第1診察室",
-            "number": 4,
-            "visible": true
-        },
-        "room2": {
-            "label": "第2診察室",
-            "number": 4,
-            "visible": true
-        },
-        "client": {
-            "ip": "118.6.2.215",
-            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"
-        }
-    },
-    {
-        "timestamp": "2025-06-25 17:50:14",
-        "room1": {
-            "label": "第1診察室",
-            "number": 5,
-            "visible": true
-        },
-        "room2": {
-            "label": "第2診察室",
-            "number": 4,
-            "visible": true
-        },
-        "client": {
-            "ip": "118.6.2.215",
-            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"
-        }
-    },
-    {
-        "timestamp": "2025-06-25 17:50:24",
-        "room1": {
-            "label": "第1診察室",
-            "number": 6,
-            "visible": true
-        },
-        "room2": {
-            "label": "第2診察室",
-            "number": 4,
-            "visible": true
-        },
-        "client": {
-            "ip": "118.6.2.215",
-            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"
-        }
-    },
-    {
-        "timestamp": "2025-06-25 17:53:30",
-        "room1": {
-            "label": "第1診察室",
-            "number": 2,
-            "visible": true
-        },
-        "room2": {
-            "label": "第2診察室",
-            "number": 4,
-            "visible": true
-        },
-        "client": {
-            "ip": "118.6.2.215",
-            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"
-        }
-    },
-    {
-        "timestamp": "2025-06-25 17:53:38",
-        "room1": {
-            "label": "第1診察室",
-            "number": 0,
-            "visible": false
-        },
-        "room2": {
-            "label": "第2診察室",
-            "number": 0,
-            "visible": false
-        },
-        "client": {
-            "ip": "118.6.2.215",
-            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"
-        }
-    },
-    {
-        "timestamp": "2025-06-25 17:53:43",
-        "room1": {
-            "label": "第1診察室",
-            "number": 1,
-            "visible": true
-        },
-        "room2": {
-            "label": "第2診察室",
-            "number": 0,
-            "visible": false
-        },
-        "client": {
-            "ip": "118.6.2.215",
-            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"
-        }
-    },
-    {
-        "timestamp": "2025-06-25 18:01:01",
-        "room1": {
-            "label": "第1診察室",
-            "number": 2,
-            "visible": true
-        },
-        "room2": {
-            "label": "第2診察室",
-            "number": 0,
-            "visible": false
-        },
-        "client": {
-            "ip": "118.6.2.215",
-            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"
-        }
-    },
-    {
-        "timestamp": "2025-06-25 18:01:12",
-        "room1": {
-            "label": "第1診察室",
-            "number": 2,
-            "visible": true
-        },
-        "room2": {
-            "label": "第2診察室",
-            "number": 5,
-            "visible": true
-        },
-        "client": {
-            "ip": "118.6.2.215",
-            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"
-        }
-    },
-    {
-        "timestamp": "2025-06-29 19:04:21",
-        "room1": {
-            "label": "第1診察室",
-            "number": 2,
-            "visible": false
-        },
-        "room2": {
-            "label": "第2診察室",
-            "number": 5,
-            "visible": false
-        },
-        "client": {
-            "ip": "118.6.2.215",
-            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/138.0.0.0 Safari\/537.36"
-        }
-    },
-    {
-        "timestamp": "2025-06-29 19:04:49",
-        "room1": {
-            "label": "第1診察室",
-            "number": 0,
-            "visible": false
-        },
-        "room2": {
-            "label": "第2診察室",
-            "number": 0,
-            "visible": false
-        },
-        "client": {
-            "ip": "118.6.2.215",
-            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/138.0.0.0 Safari\/537.36"
-        }
-    },
-    {
-        "timestamp": "2025-06-30 08:50:01",
-        "room1": {
-            "label": "第1診察室",
-            "number": 1,
-            "visible": true
-        },
-        "room2": {
-            "label": "第2診察室",
-            "number": 0,
-            "visible": false
-        },
-        "client": {
-            "ip": "118.6.2.215",
-            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"
-        }
-    },
-    {
-        "timestamp": "2025-06-30 08:50:15",
-        "room1": {
-            "label": "第1診察室",
-            "number": 2,
-            "visible": true
-        },
-        "room2": {
-            "label": "第2診察室",
-            "number": 0,
-            "visible": false
-        },
-        "client": {
-            "ip": "118.6.2.215",
-            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"
-        }
-    },
-    {
-        "timestamp": "2025-06-30 08:50:19",
-        "room1": {
-            "label": "第1診察室",
-            "number": 3,
-            "visible": true
-        },
-        "room2": {
-            "label": "第2診察室",
-            "number": 0,
-            "visible": false
-        },
-        "client": {
-            "ip": "118.6.2.215",
-            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"
-        }
-    },
-    {
-        "timestamp": "2025-06-30 08:50:26",
-        "room1": {
-            "label": "第1診察室",
-            "number": 3,
-            "visible": true
-        },
-        "room2": {
-            "label": "第2診察室",
-            "number": 1,
-            "visible": true
-        },
-        "client": {
-            "ip": "118.6.2.215",
-            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"
-        }
-    },
-    {
-        "timestamp": "2025-06-30 08:50:55",
-        "room1": {
-            "label": "第1　藤田",
-            "number": 3,
-            "visible": true
-        },
-        "room2": {
-            "label": "第2診察室",
-            "number": 1,
-            "visible": true
-        },
-        "client": {
-            "ip": "118.6.2.215",
-            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"
-        }
-    },
-    {
-        "timestamp": "2025-06-30 08:51:42",
-        "room1": {
-            "label": "第1　藤田",
-            "number": 3,
-            "visible": false
-        },
-        "room2": {
-            "label": "第2診察室",
-            "number": 1,
-            "visible": false
-        },
-        "client": {
-            "ip": "118.6.2.215",
-            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"
-        }
-    },
-    {
-        "timestamp": "2025-06-30 17:03:22",
-        "room1": {
-            "label": "第1　藤田",
-            "number": 3,
-            "visible": false
-        },
-        "room2": {
-            "label": "第2診察室",
-            "number": 1,
-            "visible": false
-        },
-        "client": {
-            "ip": "118.6.2.215",
-            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"
-        }
-    },
-    {
-        "timestamp": "2025-06-30 17:08:15",
-        "room1": {
-            "label": "第1　藤田",
-            "number": 1,
-            "visible": true
-        },
-        "room2": {
-            "label": "第2診察室",
-            "number": 1,
-            "visible": false
-        },
-        "client": {
-            "ip": "118.6.2.215",
-            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"
-        }
-    },
-    {
-        "timestamp": "2025-06-30 17:08:44",
-        "room1": {
-            "label": "第1診察室　藤田",
-            "number": 1,
-            "visible": true
-        },
-        "room2": {
-            "label": "第2診察室",
-            "number": 1,
-            "visible": false
-        },
-        "client": {
-            "ip": "118.6.2.215",
-            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"
-        }
-    },
-    {
         "timestamp": "2025-06-30 17:09:47",
         "room1": {
             "label": "第1診察室　藤田",
@@ -847,6 +490,363 @@
         "client": {
             "ip": "118.6.2.215",
             "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"
+        }
+    },
+    {
+        "timestamp": "2025-07-01 18:35:23",
+        "room1": {
+            "label": "第1診察室　小石",
+            "number": 1,
+            "visible": true
+        },
+        "room2": {
+            "label": "第2診察室   高松",
+            "number": 1,
+            "visible": true
+        },
+        "client": {
+            "ip": "118.6.2.215",
+            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"
+        }
+    },
+    {
+        "timestamp": "2025-07-01 18:35:45",
+        "room1": {
+            "label": "第1診察室　小石",
+            "number": 1,
+            "visible": true
+        },
+        "room2": {
+            "label": "第2診察室   高松",
+            "number": 1,
+            "visible": true
+        },
+        "client": {
+            "ip": "118.6.2.215",
+            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"
+        }
+    },
+    {
+        "timestamp": "2025-07-01 18:40:16",
+        "room1": {
+            "label": "第1診察室　小石",
+            "number": 1,
+            "visible": true
+        },
+        "room2": {
+            "label": "第2診察室   高松",
+            "number": 1,
+            "visible": true
+        },
+        "client": {
+            "ip": "118.6.2.215",
+            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"
+        }
+    },
+    {
+        "timestamp": "2025-07-01 18:40:20",
+        "room1": {
+            "label": "第1診察室　小石",
+            "number": 1,
+            "visible": true
+        },
+        "room2": {
+            "label": "第2診察室   高松",
+            "number": 1,
+            "visible": true
+        },
+        "client": {
+            "ip": "118.6.2.215",
+            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"
+        }
+    },
+    {
+        "timestamp": "2025-07-01 18:40:24",
+        "room1": {
+            "label": "第1診察室　小石",
+            "number": 1,
+            "visible": true
+        },
+        "room2": {
+            "label": "第2診察室   高松",
+            "number": 1,
+            "visible": true
+        },
+        "client": {
+            "ip": "118.6.2.215",
+            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"
+        }
+    },
+    {
+        "timestamp": "2025-07-01 18:40:32",
+        "room1": {
+            "label": "第1診察室　小石",
+            "number": 1,
+            "visible": true
+        },
+        "room2": {
+            "label": "第2診察室   高松",
+            "number": 1,
+            "visible": true
+        },
+        "client": {
+            "ip": "118.6.2.215",
+            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"
+        }
+    },
+    {
+        "timestamp": "2025-07-01 18:40:47",
+        "room1": {
+            "label": "第1診察室　小石",
+            "number": 1,
+            "visible": true
+        },
+        "room2": {
+            "label": "第2診察室   高松",
+            "number": 1,
+            "visible": true
+        },
+        "client": {
+            "ip": "118.6.2.215",
+            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"
+        }
+    },
+    {
+        "timestamp": "2025-07-01 18:41:01",
+        "room1": {
+            "label": "第1診察室　小石",
+            "number": 1,
+            "visible": true
+        },
+        "room2": {
+            "label": "第2診察室   高松",
+            "number": 1,
+            "visible": false
+        },
+        "client": {
+            "ip": "118.6.2.215",
+            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"
+        }
+    },
+    {
+        "timestamp": "2025-07-01 18:41:08",
+        "room1": {
+            "label": "第1診察室",
+            "number": 1,
+            "visible": true
+        },
+        "room2": {
+            "label": "第2診察室   高松",
+            "number": 1,
+            "visible": false
+        },
+        "client": {
+            "ip": "118.6.2.215",
+            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"
+        }
+    },
+    {
+        "timestamp": "2025-07-01 18:41:25",
+        "room1": {
+            "label": "第1診察室",
+            "number": 0,
+            "visible": true
+        },
+        "room2": {
+            "label": "第2診察室   高松",
+            "number": 1,
+            "visible": false
+        },
+        "client": {
+            "ip": "118.6.2.215",
+            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"
+        }
+    },
+    {
+        "timestamp": "2025-07-01 18:41:35",
+        "room1": {
+            "label": "第1診察室",
+            "number": 0,
+            "visible": true
+        },
+        "room2": {
+            "label": "第2診察室   高松",
+            "number": 1,
+            "visible": false
+        },
+        "client": {
+            "ip": "118.6.2.215",
+            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"
+        }
+    },
+    {
+        "timestamp": "2025-07-01 18:41:36",
+        "room1": {
+            "label": "第1診察室",
+            "number": 0,
+            "visible": true
+        },
+        "room2": {
+            "label": "第2診察室   高松",
+            "number": 1,
+            "visible": false
+        },
+        "client": {
+            "ip": "118.6.2.215",
+            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/137.0.0.0 Safari\/537.36"
+        }
+    },
+    {
+        "timestamp": "2025-07-02 09:08:17",
+        "room1": {
+            "label": "第1診察室",
+            "number": 1,
+            "visible": true
+        },
+        "room2": {
+            "label": "第2診察室   高松",
+            "number": 1,
+            "visible": false
+        },
+        "client": {
+            "ip": "118.6.2.215",
+            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/138.0.0.0 Safari\/537.36"
+        }
+    },
+    {
+        "timestamp": "2025-07-02 09:09:16",
+        "room1": {
+            "label": "第1診察室",
+            "number": 1,
+            "visible": true
+        },
+        "room2": {
+            "label": "第2診察室   高松",
+            "number": 1,
+            "visible": false
+        },
+        "client": {
+            "ip": "118.6.2.215",
+            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/138.0.0.0 Safari\/537.36"
+        }
+    },
+    {
+        "timestamp": "2025-07-02 09:10:23",
+        "room1": {
+            "label": "第1診察室",
+            "number": 0,
+            "visible": true
+        },
+        "room2": {
+            "label": "第2診察室   高松",
+            "number": 1,
+            "visible": false
+        },
+        "client": {
+            "ip": "118.6.2.215",
+            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/138.0.0.0 Safari\/537.36"
+        }
+    },
+    {
+        "timestamp": "2025-07-02 09:10:34",
+        "room1": {
+            "label": "第1診察室",
+            "number": 1,
+            "visible": true
+        },
+        "room2": {
+            "label": "第2診察室   高松",
+            "number": 1,
+            "visible": false
+        },
+        "client": {
+            "ip": "118.6.2.215",
+            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/138.0.0.0 Safari\/537.36"
+        }
+    },
+    {
+        "timestamp": "2025-07-02 09:10:40",
+        "room1": {
+            "label": "第1診察室",
+            "number": 4,
+            "visible": true
+        },
+        "room2": {
+            "label": "第2診察室   高松",
+            "number": 1,
+            "visible": false
+        },
+        "client": {
+            "ip": "118.6.2.215",
+            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/138.0.0.0 Safari\/537.36"
+        }
+    },
+    {
+        "timestamp": "2025-07-02 09:10:45",
+        "room1": {
+            "label": "第1診察室",
+            "number": 1,
+            "visible": true
+        },
+        "room2": {
+            "label": "第2診察室   高松",
+            "number": 1,
+            "visible": false
+        },
+        "client": {
+            "ip": "118.6.2.215",
+            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/138.0.0.0 Safari\/537.36"
+        }
+    },
+    {
+        "timestamp": "2025-07-02 09:11:03",
+        "room1": {
+            "label": "第1診察室",
+            "number": 2,
+            "visible": true
+        },
+        "room2": {
+            "label": "第2診察室   高松",
+            "number": 1,
+            "visible": false
+        },
+        "client": {
+            "ip": "118.6.2.215",
+            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/138.0.0.0 Safari\/537.36"
+        }
+    },
+    {
+        "timestamp": "2025-07-02 09:11:07",
+        "room1": {
+            "label": "第1診察室",
+            "number": 0,
+            "visible": true
+        },
+        "room2": {
+            "label": "第2診察室   高松",
+            "number": 1,
+            "visible": false
+        },
+        "client": {
+            "ip": "118.6.2.215",
+            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/138.0.0.0 Safari\/537.36"
+        }
+    },
+    {
+        "timestamp": "2025-07-02 09:11:37",
+        "room1": {
+            "label": "第1診察室",
+            "number": 0,
+            "visible": true
+        },
+        "room2": {
+            "label": "第2診察室   高松",
+            "number": 1,
+            "visible": false
+        },
+        "client": {
+            "ip": "118.6.2.215",
+            "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/138.0.0.0 Safari\/537.36"
         }
     }
 ]
