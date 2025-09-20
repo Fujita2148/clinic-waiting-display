@@ -157,6 +157,13 @@ html, body {
   transition: var(--transition-smooth);
 }
 
+.main-content.wide-card {
+  max-width: clamp(1100px, 72vw, 1500px);
+  width: 100%;
+  align-items: stretch;
+  justify-self: center;
+}
+
 .main-content.show {
   opacity: 1;
   transform: translateY(0);
@@ -175,6 +182,23 @@ html, body {
   white-space: pre-wrap;         /* 改行文字を有効化 */
   word-break: break-word;        /* 長い単語を適切に改行 */
   overflow-wrap: break-word;     /* 単語の途中でも改行可能 */
+}
+
+.main-content h2.long-title,
+.main-content h2.xlong-title {
+  line-height: 1.2;
+  margin-bottom: 32px;
+}
+
+.main-content h2.long-title {
+  font-size: clamp(3.4rem, 4.6vw, 4rem);
+}
+
+.main-content h2.xlong-title {
+  font-size: clamp(3rem, 4.2vw, 3.6rem);
+  line-height: 1.15;
+  margin-bottom: 26px;
+  letter-spacing: -0.01em;
 }
 
 .main-content p {
@@ -725,11 +749,24 @@ details.card .card-content {
 @media (max-width: 1200px) {
   .display-container {
     grid-template-columns: 1fr 400px;
-    grid-template-areas: 
+    grid-template-areas:
       "category status"
       "content status"
       "content status"
       "message status";
+  }
+
+  .main-content.wide-card {
+    max-width: clamp(820px, 88vw, 1100px);
+  }
+
+  .main-content h2.long-title {
+    font-size: clamp(3rem, 4.8vw, 3.6rem);
+  }
+
+  .main-content h2.xlong-title {
+    font-size: clamp(2.8rem, 4.4vw, 3.2rem);
+    margin-bottom: 24px;
   }
 }
 
@@ -748,6 +785,23 @@ details.card .card-content {
     --title-size: calc(4.5rem * 0.6);
     --content-size: calc(2.8rem * 0.6);
     --status-number: calc(11.0rem * 0.6);
+  }
+
+  .main-content.wide-card {
+    max-width: 100%;
+    align-items: center;
+    justify-self: stretch;
+  }
+
+  .main-content h2.long-title {
+    font-size: clamp(2.6rem, 6vw, 3.2rem);
+    margin-bottom: 24px;
+  }
+
+  .main-content h2.xlong-title {
+    font-size: clamp(2.4rem, 5.5vw, 2.9rem);
+    line-height: 1.12;
+    margin-bottom: 20px;
   }
 }
 
