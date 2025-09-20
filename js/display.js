@@ -421,14 +421,29 @@ initializeBackgroundVideo() {
     setTimeout(() => {
       // コンテンツ更新
       this.mainContent.innerHTML = '';
-      
+      this.mainContent.classList.remove('wide-card');
+
       const titleElement = document.createElement('h2');
       const textElement = document.createElement('p');
-      
+
+      const itemIcon = item.icon || '💡';
+      const itemTitle = item.title || '';
+      const titleText = `${itemIcon} ${itemTitle}`;
+
+      // タイトルの長さを計測し、クラスを調整
+      const titleLength = Array.from(titleText).length;
+      if (titleLength > 28) {
+        titleElement.classList.add('long-title', 'xlong-title');
+        this.mainContent.classList.add('wide-card');
+      } else if (titleLength > 22) {
+        titleElement.classList.add('long-title');
+        this.mainContent.classList.add('wide-card');
+      }
+
       // タイトルとテキストを設定
-      TextUtils.setElementText(titleElement, `${item.icon || '💡'} ${item.title}`, true);
+      TextUtils.setElementText(titleElement, titleText, true);
       TextUtils.setElementText(textElement, item.text, true);
-      
+
       this.mainContent.appendChild(titleElement);
       this.mainContent.appendChild(textElement);
       
