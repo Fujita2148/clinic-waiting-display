@@ -32,8 +32,21 @@ class PlaylistDisplayManager {
     this.currentPlaylistIndex = 0;
     this.currentFileIndex = 0;
     this.currentTimeout = null;
+    this.fadeOutTimeout = null;
     this.dataInterval = null;
     this.isInitialized = false;
+  }
+
+  clearPlaybackTimers() {
+    if (this.currentTimeout) {
+      clearTimeout(this.currentTimeout);
+      this.currentTimeout = null;
+    }
+
+    if (this.fadeOutTimeout) {
+      clearTimeout(this.fadeOutTimeout);
+      this.fadeOutTimeout = null;
+    }
   }
 
   /**
@@ -285,13 +298,10 @@ initializeBackgroundVideo() {
     if (!this.playlist || !this.playlist.hasPlaylist || !this.settings.showTips) {
       return;
     }
-    
+
     // 現在のタイムアウトをクリア
-    if (this.currentTimeout) {
-      clearTimeout(this.currentTimeout);
-      this.currentTimeout = null;
-    }
-    
+    this.clearPlaybackTimers();
+
     // 次のアイテムを表示
     this.showNextItem();
   }
@@ -303,7 +313,9 @@ initializeBackgroundVideo() {
     if (!this.playlist || !this.playlist.hasPlaylist || !this.settings.showTips) {
       return;
     }
-    
+
+    this.clearPlaybackTimers();
+
     const playlistItems = this.playlist.playlist;
     if (!playlistItems || playlistItems.length === 0) {
       log('warn', 'No items in playlist');
@@ -358,11 +370,12 @@ initializeBackgroundVideo() {
     
     // プレイリスト状態を保存
     await this.savePlaylistState();
-    
+
     // 次のアイテムまでの待機
     this.currentTimeout = setTimeout(() => {
+      this.currentTimeout = null;
       this.currentFileIndex++;
-      
+
       // 現在のファイルの最後に達した場合
       if (this.currentFileIndex >= items.length) {
         this.currentFileIndex = 0;
@@ -400,15 +413,57 @@ initializeBackgroundVideo() {
    */
   moveToNextPlaylistItem() {
     this.currentPlaylistIndex++;
-    
+
     // プレイリストの最後に達した場合
     if (this.currentPlaylistIndex >= this.playlist.playlist.length) {
       this.currentPlaylistIndex = 0;
       log('info', 'Playlist completed, restarting from beginning');
     }
-    
+
     this.currentFileIndex = 0;
     this.showNextItem();
+  }
+
+  skipToNextItem() {
+    if (!this.playlist || !this.playlist.hasPlaylist || !this.settings.showTips) {
+      return;
+    }
+
+    this.clearPlaybackTimers();
+
+    const playlistItems = this.playlist.playlist;
+    if (!playlistItems || playlistItems.length === 0) {
+      return;
+    }
+
+    const currentFile = playlistItems[this.currentPlaylistIndex];
+    const content = currentFile ? this.loadedContents[currentFile.filename] : null;
+    const itemsSource = content?.items ?? content;
+    const items = Array.isArray(itemsSource) ? itemsSource : [];
+
+    if (items.length === 0) {
+      this.moveToNextPlaylistItem();
+      return;
+    }
+
+    this.currentFileIndex++;
+
+    if (this.currentFileIndex >= items.length) {
+      this.currentFileIndex = 0;
+      this.moveToNextPlaylistItem();
+      return;
+    }
+
+    this.showNextItem();
+  }
+
+  skipToNextFile() {
+    if (!this.playlist || !this.playlist.hasPlaylist || !this.settings.showTips) {
+      return;
+    }
+
+    this.clearPlaybackTimers();
+    this.moveToNextPlaylistItem();
   }
 
   /**
@@ -417,7 +472,7 @@ initializeBackgroundVideo() {
   displayItem(item, displayTime) {
     // フェードアウト
     this.mainContent.classList.remove('show');
-    
+
     setTimeout(() => {
       // コンテンツ更新
       this.mainContent.innerHTML = '';
@@ -444,16 +499,42 @@ initializeBackgroundVideo() {
       TextUtils.setElementText(titleElement, titleText, true);
       TextUtils.setElementText(textElement, item.text, true);
 
+      titleElement.classList.add('tip-title-button');
+      textElement.classList.add('tip-body-button');
+      titleElement.setAttribute('role', 'button');
+      textElement.setAttribute('role', 'button');
+      titleElement.tabIndex = 0;
+      textElement.tabIndex = 0;
+
+      const activateOnInteraction = (element, handler) => {
+        element.addEventListener('click', handler);
+        element.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
+            event.preventDefault();
+            handler();
+          }
+        });
+      };
+
+      activateOnInteraction(titleElement, () => this.skipToNextFile());
+      activateOnInteraction(textElement, () => this.skipToNextItem());
+
       this.mainContent.appendChild(titleElement);
       this.mainContent.appendChild(textElement);
-      
+
       // フェードイン
       this.mainContent.classList.add('show');
     }, 300);
-    
+
     // 自動フェードアウト
-    setTimeout(() => {
+    if (this.fadeOutTimeout) {
+      clearTimeout(this.fadeOutTimeout);
+      this.fadeOutTimeout = null;
+    }
+
+    this.fadeOutTimeout = setTimeout(() => {
       this.mainContent.classList.remove('show');
+      this.fadeOutTimeout = null;
     }, displayTime * 1000);
   }
 
