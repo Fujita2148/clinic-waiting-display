@@ -36,6 +36,9 @@ class PlaylistDisplayManager {
     this.dataInterval = null;
     this.isInitialized = false;
     this.manualAdvanceMode = false;
+
+    this.manualCategoryListeners = { click: null, keydown: null };
+    this.manualContentListeners = { click: null, keydown: null };
   }
 
   clearPlaybackTimers() {
@@ -73,6 +76,8 @@ class PlaylistDisplayManager {
         log('info', 'Manual advance mode enabled for tips');
       }
 
+      this.setupManualAdvanceControls();
+
       // 初期表示
       this.renderStatus();
       this.renderMessage();
@@ -100,6 +105,60 @@ class PlaylistDisplayManager {
       log('error', 'Failed to initialize PlaylistDisplayManager:', error);
       this.showError('システムの初期化に失敗しました');
     }
+  }
+
+  setupManualAdvanceControls() {
+    const detachHandlers = (element, listeners, focusClass) => {
+      if (!element) return;
+      if (listeners.click) {
+        element.removeEventListener('click', listeners.click);
+      }
+      if (listeners.keydown) {
+        element.removeEventListener('keydown', listeners.keydown);
+      }
+      element.removeAttribute('role');
+      element.removeAttribute('tabindex');
+      if (focusClass) {
+        element.classList.remove(focusClass);
+      }
+    };
+
+    detachHandlers(this.categoryTitle, this.manualCategoryListeners, 'tip-title-button');
+    detachHandlers(this.mainContent, this.manualContentListeners, 'tip-body-button');
+
+    this.manualCategoryListeners = { click: null, keydown: null };
+    this.manualContentListeners = { click: null, keydown: null };
+
+    if (!this.manualAdvanceMode) {
+      return;
+    }
+
+    const attachHandlers = (element, handler, focusClass, listenersStore) => {
+      if (!element) return;
+
+      const clickHandler = () => handler();
+      const keydownHandler = (event) => {
+        if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
+          event.preventDefault();
+          handler();
+        }
+      };
+
+      element.setAttribute('role', 'button');
+      element.tabIndex = 0;
+      if (focusClass) {
+        element.classList.add(focusClass);
+      }
+
+      element.addEventListener('click', clickHandler);
+      element.addEventListener('keydown', keydownHandler);
+
+      listenersStore.click = clickHandler;
+      listenersStore.keydown = keydownHandler;
+    };
+
+    attachHandlers(this.categoryTitle, () => this.skipToNextFile(), 'tip-title-button', this.manualCategoryListeners);
+    attachHandlers(this.mainContent, () => this.skipToNextItem(), 'tip-body-button', this.manualContentListeners);
   }
 
   /**
@@ -511,23 +570,23 @@ initializeBackgroundVideo() {
 
       titleElement.classList.add('tip-title-button');
       textElement.classList.add('tip-body-button');
-      titleElement.setAttribute('role', 'button');
-      textElement.setAttribute('role', 'button');
-      titleElement.tabIndex = 0;
-      textElement.tabIndex = 0;
 
-      const activateOnInteraction = (element, handler) => {
-        element.addEventListener('click', handler);
-        element.addEventListener('keydown', (event) => {
-          if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
-            event.preventDefault();
-            handler();
-          }
-        });
-      };
+      if (!this.manualAdvanceMode) {
+        const activateOnInteraction = (element, handler) => {
+          element.setAttribute('role', 'button');
+          element.tabIndex = 0;
+          element.addEventListener('click', handler);
+          element.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
+              event.preventDefault();
+              handler();
+            }
+          });
+        };
 
-      activateOnInteraction(titleElement, () => this.skipToNextFile());
-      activateOnInteraction(textElement, () => this.skipToNextItem());
+        activateOnInteraction(titleElement, () => this.skipToNextFile());
+        activateOnInteraction(textElement, () => this.skipToNextItem());
+      }
 
       this.mainContent.appendChild(titleElement);
       this.mainContent.appendChild(textElement);
