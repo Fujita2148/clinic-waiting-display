@@ -215,6 +215,31 @@ html, body {
   overflow-wrap: break-word;     /* 単語の途中でも改行可能 */
 }
 
+.tip-title-button,
+.tip-body-button {
+  cursor: pointer;
+  outline: none;
+  transition: var(--transition-fast);
+}
+
+.tip-title-button:hover,
+.tip-title-button:focus-visible,
+.tip-body-button:hover,
+.tip-body-button:focus-visible {
+  outline: 3px solid rgba(255, 255, 255, 0.6);
+  outline-offset: 6px;
+}
+
+.tip-title-button:hover,
+.tip-title-button:focus-visible {
+  text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.6);
+}
+
+.tip-body-button:hover,
+.tip-body-button:focus-visible {
+  text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.5);
+}
+
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    メッセージエリア（改行対応）
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
