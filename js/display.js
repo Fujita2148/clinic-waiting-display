@@ -35,6 +35,7 @@ class PlaylistDisplayManager {
     this.fadeOutTimeout = null;
     this.dataInterval = null;
     this.isInitialized = false;
+    this.manualAdvanceMode = false;
   }
 
   clearPlaybackTimers() {
@@ -64,7 +65,14 @@ class PlaylistDisplayManager {
       
       // 初期データ読み込み
       await this.loadAllData();
-      
+
+      // 手動送りモードの判定
+      const params = new URLSearchParams(window.location.search);
+      this.manualAdvanceMode = params.get('manualTips') === '1' || params.get('manualTips') === 'true';
+      if (this.manualAdvanceMode) {
+        log('info', 'Manual advance mode enabled for tips');
+      }
+
       // 初期表示
       this.renderStatus();
       this.renderMessage();
@@ -372,19 +380,21 @@ initializeBackgroundVideo() {
     await this.savePlaylistState();
 
     // 次のアイテムまでの待機
-    this.currentTimeout = setTimeout(() => {
-      this.currentTimeout = null;
-      this.currentFileIndex++;
+    if (!this.manualAdvanceMode) {
+      this.currentTimeout = setTimeout(() => {
+        this.currentTimeout = null;
+        this.currentFileIndex++;
 
-      // 現在のファイルの最後に達した場合
-      if (this.currentFileIndex >= items.length) {
-        this.currentFileIndex = 0;
-        this.moveToNextPlaylistItem();
-      } else {
-        this.showNextItem();
-      }
-    }, timing.waitTime * 1000);
-    
+        // 現在のファイルの最後に達した場合
+        if (this.currentFileIndex >= items.length) {
+          this.currentFileIndex = 0;
+          this.moveToNextPlaylistItem();
+        } else {
+          this.showNextItem();
+        }
+      }, timing.waitTime * 1000);
+    }
+
     log('debug', `Displayed: ${currentFile.filename}[${this.currentFileIndex}] - wait: ${timing.waitTime}s, display: ${timing.displayTime}s`);
   }
 
@@ -532,10 +542,12 @@ initializeBackgroundVideo() {
       this.fadeOutTimeout = null;
     }
 
-    this.fadeOutTimeout = setTimeout(() => {
-      this.mainContent.classList.remove('show');
-      this.fadeOutTimeout = null;
-    }, displayTime * 1000);
+    if (!this.manualAdvanceMode) {
+      this.fadeOutTimeout = setTimeout(() => {
+        this.mainContent.classList.remove('show');
+        this.fadeOutTimeout = null;
+      }, displayTime * 1000);
+    }
   }
 
   /**
