@@ -29,8 +29,7 @@ try {
                 'currentFileIndex' => 0,
                 'currentFile' => null,
                 'progress' => '0%',
-                'playlist' => [],
-                'shortcutMap' => []
+                'playlist' => []
             ],
             'timestamp' => date('Y-m-d H:i:s')
         ];
@@ -115,7 +114,6 @@ try {
             'progress' => $progressPercent . '%',
             'progressRaw' => $progressPercent,
             'playlist' => $playlistData['playlist'] ?? [],
-            'shortcutMap' => $playlistData['shortcutMap'] ?? [],
             'lastUpdated' => $playlistData['lastUpdated'] ?? null
         ],
         'timestamp' => date('Y-m-d H:i:s')

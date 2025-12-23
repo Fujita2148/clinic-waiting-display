@@ -1,63 +1,61 @@
 {
     "playlist": [
         {
+            "id": "cf_c6615623b02d",
             "filename": "mental-tips-0morning.json",
             "displayName": "ﾒﾝﾀﾙﾍﾙｽ100のｺﾂ\n　朝と日中の活動",
             "itemCount": 20
         },
         {
+            "id": "cf_1f0350bd5aec",
             "filename": "daycare_slideshow.json",
             "displayName": "精神科デイケア\n　利用へのお誘い",
             "itemCount": 22
         },
         {
+            "id": "cf_a51bcf2947e2",
             "filename": "mental-tips-2activity.json",
             "displayName": "ﾒﾝﾀﾙﾍﾙｽ100のｺﾂ\n　活動とリラックス",
             "itemCount": 20
         },
         {
+            "id": "cf_eb55daeeb767",
             "filename": "kokubunji_walking.json",
             "displayName": "国分寺駅周辺\n散歩で健康づくりガイド",
             "itemCount": 16
         },
         {
+            "id": "cf_a5c7c9f32c7c",
             "filename": "mental-tips-4rest.json",
             "displayName": "ﾒﾝﾀﾙﾍﾙｽ100のｺﾂ\n　睡眠と休息",
             "itemCount": 20
         },
         {
+            "id": "cf_ce08dd0108b3",
             "filename": "mental_health_welfare_guide.json",
             "displayName": "精神科医療・福祉\n知っておきたい20の制度",
             "itemCount": 20
         },
         {
+            "id": "cf_05c03f0467ac",
             "filename": "mental-tips-6wellness.json",
             "displayName": "ﾒﾝﾀﾙﾍﾙｽ100のｺﾂ\n　食事と生活環境",
             "itemCount": 20
         },
         {
+            "id": "cf_faf450d255d0",
             "filename": "summer_health_tips.json",
             "displayName": "夏の熱中症予防\n　心と体を守る30のコツ",
             "itemCount": 20
         },
         {
+            "id": "cf_07ba60c2ba7a",
             "filename": "mental-tips-8mindset.json",
             "displayName": "ﾒﾝﾀﾙﾍﾙｽ100のｺﾂ\n　心の持ち方",
             "itemCount": 20
         }
     ],
-    "playlistString": "C,A,D,B,E,H,F,I,G",
-    "shortcutMap": {
-        "A": "daycare_slideshow.json",
-        "B": "kokubunji_walking.json",
-        "C": "mental-tips-0morning.json",
-        "D": "mental-tips-2activity.json",
-        "E": "mental-tips-4rest.json",
-        "F": "mental-tips-6wellness.json",
-        "G": "mental-tips-8mindset.json",
-        "H": "mental_health_welfare_guide.json",
-        "I": "summer_health_tips.json"
-    },
+    "playlistString": "cf_c6615623b02d, cf_1f0350bd5aec, cf_a51bcf2947e2, cf_eb55daeeb767, cf_a5c7c9f32c7c, cf_ce08dd0108b3, cf_05c03f0467ac, cf_faf450d255d0, cf_07ba60c2ba7a",
     "totalFiles": 9,
     "totalItems": 178,
     "currentPlaylistIndex": 0,

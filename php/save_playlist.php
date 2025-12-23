@@ -51,9 +51,6 @@ try {
     // プレイリストの検証と構築
     $playlist = buildPlaylist($playlistItems, $availableFiles);
     
-    // 短縮形マップの生成
-    $shortcutMap = generateShortcutMap($availableFiles);
-    
     // 統計情報の計算
     $totalItems = 0;
     foreach ($playlist as $item) {
@@ -64,7 +61,6 @@ try {
     $playlistData = [
         'playlist' => $playlist,
         'playlistString' => $playlistString,
-        'shortcutMap' => $shortcutMap,
         'totalFiles' => count($playlist),
         'totalItems' => $totalItems,
         'currentPlaylistIndex' => 0,
@@ -102,8 +98,7 @@ try {
         'data' => [
             'playlistString' => $playlistString,
             'totalFiles' => count($playlist),
-            'totalItems' => $totalItems,
-            'shortcutMap' => $shortcutMap
+            'totalItems' => $totalItems
         ],
         'timestamp' => date('Y-m-d H:i:s')
     ];
@@ -178,6 +173,7 @@ function getAvailableContentFiles() {
             }
 
             $files[$file] = [
+                'id' => $info['id'],
                 'filename' => $file,
                 'displayName' => $info['displayName'],
                 'itemCount' => $info['itemCount']
@@ -200,57 +196,34 @@ function getAvailableContentFiles() {
  */
 function buildPlaylist($items, $availableFiles) {
     $playlist = [];
-    $shortcutMap = generateShortcutMap($availableFiles);
+    $filesById = [];
+
+    foreach ($availableFiles as $fileInfo) {
+        if (isset($fileInfo['id']) && $fileInfo['id'] !== '') {
+            $filesById[$fileInfo['id']] = $fileInfo;
+        }
+    }
     
     foreach ($items as $item) {
-        $filename = null;
-        
-        // 短縮形（A, B, C...）の場合
-        if (strlen($item) === 1 && isset($shortcutMap[$item])) {
-            $filename = $shortcutMap[$item];
+        if (isset($filesById[$item])) {
+            $playlist[] = $filesById[$item];
+            continue;
         }
-        // ファイル名の場合
-        elseif (isset($availableFiles[$item])) {
-            $filename = $item;
+
+        if (isset($availableFiles[$item])) {
+            $playlist[] = $availableFiles[$item];
+            continue;
         }
-        // .jsonなしのファイル名の場合
-        elseif (isset($availableFiles[$item . '.json'])) {
-            $filename = $item . '.json';
+
+        if (isset($availableFiles[$item . '.json'])) {
+            $playlist[] = $availableFiles[$item . '.json'];
+            continue;
         }
-        
-        if ($filename && isset($availableFiles[$filename])) {
-            $playlist[] = $availableFiles[$filename];
-        } else {
-            throw new Exception("無効なプレイリストアイテム: $item");
-        }
+
+        throw new Exception("無効なプレイリストアイテム: $item");
     }
     
     return $playlist;
-}
-
-/**
- * 短縮形マップを生成
- * @param array $files ファイル一覧
- * @return array 短縮形マップ
- */
-function generateShortcutMap($files) {
-    $map = [];
-    $index = 0;
-    
-    // ファイル名でソート
-    $sortedFiles = array_keys($files);
-    sort($sortedFiles);
-    
-    foreach ($sortedFiles as $filename) {
-        $letter = chr(65 + $index); // A, B, C...
-        $map[$letter] = $filename;
-        $index++;
-        
-        // Zを超えたら停止
-        if ($index > 25) break;
-    }
-    
-    return $map;
 }
 
 /**

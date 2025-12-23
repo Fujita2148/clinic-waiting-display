@@ -52,6 +52,7 @@ try {
             
             // ファイル情報を配列に追加
             $files[] = [
+                'id' => $info['id'],
                 'filename' => $file,
                 'displayName' => $info['displayName'],
                 'metaTitle' => $info['metaTitle'],
