@@ -852,15 +852,20 @@ initializeBackgroundVideo() {
    */
   async savePlaylistState() {
     try {
-      // ローカルストレージに保存（サーバー実装は今回なし）
-      const data = {
-        currentPlaylistIndex: this.currentPlaylistIndex,
-        currentFileIndex: this.currentFileIndex,
-        timestamp: Date.now()
-      };
-      
-      localStorage.setItem('playlistState', JSON.stringify(data));
-      
+      const response = await fetch('php/get_playlist_status.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          currentPlaylistIndex: this.currentPlaylistIndex,
+          currentFileIndex: this.currentFileIndex
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Playback update failed: ${response.status}`);
+      }
     } catch (error) {
       log('warn', 'Failed to save playlist state:', error);
     }
