@@ -52,7 +52,15 @@ try {
             $existingSettings = json_decode($existingContent, true) ?: [];
         }
     }
-    
+
+    $allowedKeys = [
+        'interval' => true,
+        'duration' => true,
+        'showTips' => true,
+        'files' => true
+    ];
+    $existingSettings = array_intersect_key($existingSettings, $allowedKeys);
+
     // 設定をマージ
     $mergedSettings = array_merge($existingSettings, $validatedData);
     $mergedSettings['lastUpdated'] = date('Y-m-d H:i:s');
