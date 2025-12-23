@@ -7,6 +7,8 @@
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-cache, no-store, must-revalidate');
 
+require_once __DIR__ . '/content_file_utils.php';
+
 // POSTメソッドのみ許可
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -169,31 +171,17 @@ function getAvailableContentFiles() {
     foreach ($fileList as $file) {
         if (pathinfo($file, PATHINFO_EXTENSION) === 'json') {
             $filePath = $contentDir . $file;
-            
-            // ファイル内容を解析
-            $content = file_get_contents($filePath);
-            if ($content !== false) {
-                $data = json_decode($content, true);
-                if ($data && json_last_error() === JSON_ERROR_NONE) {
-                    $itemCount = 0;
-                    $displayName = $file;
-                    
-                    // 新フォーマット対応
-                    if (isset($data['meta']) && isset($data['items'])) {
-                        $itemCount = count($data['items']);
-                        $displayName = $data['meta']['title'] ?? $file;
-                    } elseif (is_array($data)) {
-                        // 旧フォーマット対応
-                        $itemCount = count($data);
-                    }
-                    
-                    $files[$file] = [
-                        'filename' => $file,
-                        'displayName' => $displayName,
-                        'itemCount' => $itemCount
-                    ];
-                }
+
+            $info = readContentFileInfo($filePath, $file);
+            if ($info === null) {
+                continue;
             }
+
+            $files[$file] = [
+                'filename' => $file,
+                'displayName' => $info['displayName'],
+                'itemCount' => $info['itemCount']
+            ];
         }
     }
     

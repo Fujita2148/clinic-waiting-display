@@ -9,6 +9,8 @@ header('Cache-Control: no-cache, no-store, must-revalidate');
 header('Pragma: no-cache');
 header('Expires: 0');
 
+require_once __DIR__ . '/content_file_utils.php';
+
 // エラーレポートを制御
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
@@ -41,31 +43,18 @@ try {
             $lastModified = filemtime($filePath);
             $contentCount = 0;
             
-            // ファイル内容を解析してアイテム数を取得
-            try {
-                $jsonContent = file_get_contents($filePath);
-                if ($jsonContent !== false) {
-                    $data = json_decode($jsonContent, true);
-                    
-                    if (json_last_error() === JSON_ERROR_NONE) {
-                        if (isset($data['items']) && is_array($data['items'])) {
-                            // 新フォーマット
-                            $contentCount = count($data['items']);
-                        } elseif (is_array($data)) {
-                            // 旧フォーマット
-                            $contentCount = count($data);
-                        }
-                    }
-                }
-            } catch (Exception $e) {
-                // JSON解析エラーは無視してファイル情報のみ返す
-                error_log("JSON parse error for file {$file}: " . $e->getMessage());
+            $info = readContentFileInfo($filePath, $file);
+            if ($info === null) {
+                continue;
             }
+
+            $contentCount = $info['itemCount'];
             
             // ファイル情報を配列に追加
             $files[] = [
                 'filename' => $file,
-                'displayName' => generateDisplayName($file),
+                'displayName' => $info['displayName'],
+                'metaTitle' => $info['metaTitle'],
                 'path' => 'data/contents/' . $file,
                 'size' => $fileSize,
                 'contentCount' => $contentCount,
@@ -104,24 +93,6 @@ try {
     
     // エラーログに記録
     error_log('get_files.php error: ' . $e->getMessage());
-}
-
-/**
- * ファイル名から表示名を生成
- * @param string $filename ファイル名
- * @return string 表示名
- */
-function generateDisplayName($filename) {
-    // .json を除去
-    $name = str_replace('.json', '', $filename);
-    
-    // アンダースコアをスペースに変換
-    $name = str_replace('_', ' ', $name);
-    
-    // 各単語の最初を大文字に
-    $name = ucwords($name);
-    
-    return $name;
 }
 
 /**

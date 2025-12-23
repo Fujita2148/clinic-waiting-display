@@ -625,13 +625,14 @@ function updatePlaylistPreview() {
   
   // 各アイテムを解決
   const resolvedItems = items.map((item, index) => {
+    const getDisplayTitle = (file) => file.metaTitle || file.displayName || file.filename;
     // 短縮形（A, B, C...）の場合
     if (item.length === 1 && item >= 'A' && item <= 'Z') {
       const fileIndex = item.charCodeAt(0) - 65;
       if (availableFiles[fileIndex]) {
         return {
           original: item,
-          resolved: availableFiles[fileIndex].displayName,
+          resolved: getDisplayTitle(availableFiles[fileIndex]),
           valid: true
         };
       }
@@ -641,13 +642,14 @@ function updatePlaylistPreview() {
     const file = availableFiles.find(f => 
       f.filename === item || 
       f.filename === item + '.json' ||
-      f.displayName === item
+      f.displayName === item ||
+      f.metaTitle === item
     );
     
     if (file) {
       return {
         original: item,
-        resolved: file.displayName,
+        resolved: getDisplayTitle(file),
         valid: true
       };
     }
