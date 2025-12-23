@@ -23,6 +23,7 @@ function readContentFileInfo($filePath, $fallbackName) {
     $itemCount = 0;
     $displayName = $fallbackName;
     $metaTitle = null;
+    $id = generateContentFileId($data, $content);
 
     if (isset($data['meta']) && isset($data['items']) && is_array($data['items'])) {
         $itemCount = count($data['items']);
@@ -35,9 +36,27 @@ function readContentFileInfo($filePath, $fallbackName) {
     }
 
     return [
+        'id' => $id,
         'displayName' => $displayName,
         'metaTitle' => $metaTitle,
         'itemCount' => $itemCount
     ];
+}
+
+/**
+ * コンテンツファイルの固定IDを生成
+ * @param array $data デコード済みJSON
+ * @param string $rawContent JSONファイルの生データ
+ * @return string 固定ID
+ */
+function generateContentFileId($data, $rawContent) {
+    if (isset($data['meta']) && isset($data['meta']['id'])) {
+        $metaId = trim((string) $data['meta']['id']);
+        if ($metaId !== '') {
+            return $metaId;
+        }
+    }
+
+    return 'cf_' . substr(sha1($rawContent), 0, 12);
 }
 ?>

@@ -397,9 +397,9 @@ async function loadAvailableFiles() {
     // ファイル一覧を表示（availableFiles要素が存在する場合のみ）
     const availableFilesElement = document.getElementById('availableFiles');
     if (availableFilesElement && availableFiles.length > 0) {
-      const fileList = availableFiles.map((file, index) => {
-        const letter = String.fromCharCode(65 + index); // A, B, C...
-        return `<strong>${letter}</strong>: ${file.displayName} (${file.contentCount}項目)`;
+      const fileList = availableFiles.map((file) => {
+        const fileId = file.id || file.filename;
+        return `<strong>${fileId}</strong>: ${file.displayName} (${file.contentCount}項目)`;
       }).join(' | ');
       availableFilesElement.innerHTML = fileList;
     } else if (availableFilesElement) {
@@ -626,24 +626,11 @@ function updatePlaylistPreview() {
   // 各アイテムを解決
   const resolvedItems = items.map((item, index) => {
     const getDisplayTitle = (file) => file.metaTitle || file.displayName || file.filename;
-    // 短縮形（A, B, C...）の場合
-    if (item.length === 1 && item >= 'A' && item <= 'Z') {
-      const fileIndex = item.charCodeAt(0) - 65;
-      if (availableFiles[fileIndex]) {
-        return {
-          original: item,
-          resolved: getDisplayTitle(availableFiles[fileIndex]),
-          valid: true
-        };
-      }
-    }
-    
-    // ファイル名で検索
-    const file = availableFiles.find(f => 
-      f.filename === item || 
-      f.filename === item + '.json' ||
-      f.displayName === item ||
-      f.metaTitle === item
+    // 固定IDまたはファイル名で検索
+    const file = availableFiles.find(f =>
+      f.id === item ||
+      f.filename === item ||
+      f.filename === item + '.json'
     );
     
     if (file) {
@@ -675,7 +662,41 @@ function updatePlaylistPreview() {
  * クイックプレイリスト設定
  */
 function setQuickPlaylist(pattern) {
-  document.getElementById('playlistString').value = pattern;
+  if (!availableFiles.length) {
+    showToast('利用可能なファイルがありません', 'error');
+    return;
+  }
+
+  const fileIds = availableFiles.map(file => file.id || file.filename);
+  let playlistPattern = '';
+
+  switch (pattern) {
+    case 'single':
+      playlistPattern = fileIds[0];
+      break;
+    case 'alternate':
+      if (fileIds.length < 2) {
+        showToast('2つ以上のファイルが必要です', 'error');
+        return;
+      }
+      playlistPattern = `${fileIds[0]}, ${fileIds[1]}, ${fileIds[0]}, ${fileIds[1]}`;
+      break;
+    case 'weighted':
+      if (fileIds.length < 2) {
+        showToast('2つ以上のファイルが必要です', 'error');
+        return;
+      }
+      playlistPattern = `${fileIds[0]}, ${fileIds[0]}, ${fileIds[0]}, ${fileIds[1]}`;
+      break;
+    case 'all':
+      playlistPattern = fileIds.join(', ');
+      break;
+    default:
+      playlistPattern = pattern;
+      break;
+  }
+
+  document.getElementById('playlistString').value = playlistPattern;
   updatePlaylistPreview();
 }
 

@@ -356,8 +356,8 @@
       <!-- プレイリスト設定 -->
       <div class="form-group">
         <label>プレイリスト設定</label>
-        <input id="playlistString" type="text" placeholder="例: A, B, A, C または mental_tips, health_tips">
-        <small style="color: #666;">ファイル名または短縮形（A, B, C...）で順序を指定。カンマ区切りで入力してください。</small>
+        <input id="playlistString" type="text" placeholder="例: cf_123abc456def, cf_789ghi012jkl または mental_tips, health_tips">
+        <small style="color: #666;">固定IDまたはファイル名で順序を指定。カンマ区切りで入力してください。</small>
       </div>
       
       <!-- プレイリストプレビュー -->
@@ -371,10 +371,10 @@
       <!-- クイック設定 -->
       <div class="quick-settings">
         <label>クイック設定:</label>
-        <button class="btn btn-sm" onclick="setQuickPlaylist('A')">A のみ</button>
-        <button class="btn btn-sm" onclick="setQuickPlaylist('A, B, A, B')">A-B 交互</button>
-        <button class="btn btn-sm" onclick="setQuickPlaylist('A, A, A, B')">A多め-B少し</button>
-        <button class="btn btn-sm" onclick="setQuickPlaylist('A, B, C')">全ファイル順番</button>
+        <button class="btn btn-sm" onclick="setQuickPlaylist('single')">先頭のみ</button>
+        <button class="btn btn-sm" onclick="setQuickPlaylist('alternate')">先頭2つ交互</button>
+        <button class="btn btn-sm" onclick="setQuickPlaylist('weighted')">先頭多め-次少し</button>
+        <button class="btn btn-sm" onclick="setQuickPlaylist('all')">全ファイル順番</button>
       </div>
       
       <!-- 利用可能ファイル一覧 -->
