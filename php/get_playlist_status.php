@@ -12,6 +12,80 @@ error_reporting(E_ALL);
 ini_set('display_errors', 0);
 
 try {
+    $requestMethod = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+
+    if ($requestMethod === 'POST') {
+        $input = file_get_contents('php://input');
+        $payload = json_decode($input, true);
+
+        if ($payload === null) {
+            throw new Exception('無効なJSONデータです');
+        }
+
+        if (!isset($payload['currentPlaylistIndex']) || !isset($payload['currentFileIndex'])) {
+            throw new Exception('再生位置が指定されていません');
+        }
+
+        $currentPlaylistIndex = (int) $payload['currentPlaylistIndex'];
+        $currentFileIndex = (int) $payload['currentFileIndex'];
+
+        if ($currentPlaylistIndex < 0 || $currentFileIndex < 0) {
+            throw new Exception('再生位置が不正です');
+        }
+
+        $playlistFile = __DIR__ . '/../data/playlist.json';
+
+        if (!file_exists($playlistFile)) {
+            throw new Exception('プレイリストが設定されていません');
+        }
+
+        $playlistContent = file_get_contents($playlistFile);
+        if ($playlistContent === false) {
+            throw new Exception('プレイリストファイルの読み込みに失敗しました');
+        }
+
+        $playlistData = json_decode($playlistContent, true);
+        if ($playlistData === null) {
+            throw new Exception('プレイリストファイルの解析に失敗しました');
+        }
+
+        $playlistCount = count($playlistData['playlist'] ?? []);
+        if ($playlistCount === 0) {
+            throw new Exception('プレイリストが設定されていません');
+        }
+
+        if ($currentPlaylistIndex >= $playlistCount) {
+            throw new Exception('プレイリストインデックスが範囲外です');
+        }
+
+        $playlistData['currentPlaylistIndex'] = $currentPlaylistIndex;
+        $playlistData['currentFileIndex'] = $currentFileIndex;
+        $playlistData['lastPlaybackUpdate'] = date('Y-m-d H:i:s');
+
+        $jsonContent = json_encode($playlistData, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+        if ($jsonContent === false) {
+            throw new Exception('JSON エンコードに失敗しました');
+        }
+
+        $result = file_put_contents($playlistFile, $jsonContent, LOCK_EX);
+        if ($result === false) {
+            throw new Exception('プレイリストファイルの保存に失敗しました');
+        }
+
+        $response = [
+            'status' => 'success',
+            'message' => '再生位置を更新しました',
+            'data' => [
+                'currentPlaylistIndex' => $currentPlaylistIndex,
+                'currentFileIndex' => $currentFileIndex
+            ],
+            'timestamp' => date('Y-m-d H:i:s')
+        ];
+
+        echo json_encode($response, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+        exit;
+    }
+
     // プレイリストファイルの読み込み
     $playlistFile = __DIR__ . '/../data/playlist.json';
     
