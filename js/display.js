@@ -18,9 +18,10 @@ class PlaylistDisplayManager {
     this.playlist = null;
     this.loadedContents = {};
     this.settings = {
-      interval: 20,    // デフォルト待ち時間（waitTime）
-      duration: 8,     // デフォルト表示時間（displayTime）
-      showTips: true
+      interval: 20,    // デフォルト待ち時間
+      duration: 8,     // デフォルト表示時間
+      showTips: true,
+      files: {}
     };
     this.message = { text: '', visible: false };
     this.status = {
@@ -320,15 +321,25 @@ initializeBackgroundVideo() {
    * 設定の読み込み
    */
   async loadSettings() {
-    this.settings = await safeAsync(
+    const defaults = {
+      interval: 20,
+      duration: 8,
+      showTips: true,
+      files: {}
+    };
+
+    const loadedSettings = await safeAsync(
       () => fetchJSON('data/settings.json'),
       'Failed to load settings',
-      {
-        interval: 20,    // デフォルトwaitTime
-        duration: 8,     // デフォルトdisplayTime
-        showTips: true
-      }
+      defaults
     );
+
+    this.settings = {
+      interval: Number.isFinite(loadedSettings?.interval) ? loadedSettings.interval : defaults.interval,
+      duration: Number.isFinite(loadedSettings?.duration) ? loadedSettings.duration : defaults.duration,
+      showTips: typeof loadedSettings?.showTips === 'boolean' ? loadedSettings.showTips : defaults.showTips,
+      files: (loadedSettings?.files && typeof loadedSettings.files === 'object') ? loadedSettings.files : defaults.files
+    };
   }
 
   /**

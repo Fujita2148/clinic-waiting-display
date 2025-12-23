@@ -1,7 +1,6 @@
 {
     "interval": 20,
     "duration": 8,
-    "messageMode": "always",
     "showTips": true,
     "files": {
         "mental_tips.json": {
