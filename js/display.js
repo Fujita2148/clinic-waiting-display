@@ -822,6 +822,9 @@ initializeBackgroundVideo() {
     const r1 = this.status.room1 || {};
     const r2 = this.status.room2 || {};
 
+    const room1Class = this.getRoomLabelClass(r1.label || '第1診察室');
+    const room2Class = this.getRoomLabelClass(r2.label || '第2診察室');
+
     const hasVisibleRoom = (r1.visible && r1.number > 0) || (r2.visible && r2.number > 0);
 
     if (!hasVisibleRoom) {
@@ -830,21 +833,36 @@ initializeBackgroundVideo() {
     }
 
     this.statusCard.style.display = 'block';
-    this.statusCard.innerHTML = `
-      <h4>🩺 診察順のご案内</h4>
-      ${r1.visible && r1.number > 0 ? `
-        <div class="room-info">
-          <div class="room-label">${r1.label || '第1診察室'}</div>
+      this.statusCard.innerHTML = `
+        <h4>🩺 診察順のご案内</h4>
+        ${r1.visible && r1.number > 0 ? `
+          <div class="room-info">
+          <div class="room-label ${room1Class}">${r1.label || '第1診察室'}</div>
           <div class="room-number">${r1.number}</div>
-        </div>
-      ` : ''}
-      ${r2.visible && r2.number > 0 ? `
-        <div class="room-info">
-          <div class="room-label">${r2.label || '第2診察室'}</div>
+          </div>
+        ` : ''}
+        ${r2.visible && r2.number > 0 ? `
+          <div class="room-info">
+          <div class="room-label ${room2Class}">${r2.label || '第2診察室'}</div>
           <div class="room-number">${r2.number}</div>
-        </div>
-      ` : ''}
-    `;
+          </div>
+        ` : ''}
+      `;
+  }
+
+  getRoomLabelClass(label) {
+    const normalized = (label || '').replace(/\s+/g, '');
+    const length = Array.from(normalized).length;
+
+    if (length >= 6) {
+      return 'room-label-compact';
+    }
+
+    if (length >= 3) {
+      return 'room-label-tight';
+    }
+
+    return '';
   }
 
   /**
